@@ -4,58 +4,42 @@ import { useEffect, useState } from 'react'
 
 const defaultSql = "select 1 as test"
 
-// async function fetcher(sql: string) {
-//     var myHeaders = new Headers()
-//     myHeaders.append("Content-Type", "application/json")
-//     var requestOptions = {
-//         method: 'POST',
-//         headers: myHeaders,
-//         body: sql
-//     }
-//     const res = await fetch("http://localhost:3000/api/pg", requestOptions)
-//         .then((res) => res.json())
-//         .catch(error => console.log('error', error))
-//     return res ? res.data : {}
-// }
-
 export default function Query() {
     const [sql, setSql] = useState('select 1 as test')
     const sqlChangeHandler = (e: any) => {
-        setSql(e.target.value)
+        setSql(e)
     }
 
-    const fetcher = async (sql: any) => {
-        const requestOptions = {
-            method: 'POST',
+    const fetcher = async (sql: {}) => {
+        console.log(sql)
+        const res = await fetch("/api/pg", {
+            method: 'post',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
             },
-            body: sql,
+            body: JSON.stringify(sql),
             redirect: 'follow'
-        }
-        console.log(requestOptions)
-        const res = await fetch("http://localhost:3000/api/pg", requestOptions as any).then((result) => {
-            result.json
-        })
-        console.log(res)
-        const data = res ? (res as any).sheet : {}
+        }).then((result) => result)
+        // console.log(res)
+        const data = res.ok ? res.json() : undefined
+        // console.log(data)
         return data
     }
 
-    // const { data, error, isLoading, mutate } = useSWR('/api/pg', fetcher)
     const data = fetcher({ sql: (sql as string) })
     const [header, setHeader] = useState()
     const [datasheet, setDatasheet] = useState()
     useEffect(() => {
-        console.log(data)
-        if (data) {
-            setHeader((data as any).header)
-            setDatasheet((data as any).data)
-        }
-        // console.log(header)
-        // console.log(datasheet)
-    }, [data, header, datasheet])
+        const sheet = data.then((res) => {
+            const s = res.sheet
+            setHeader(s.header)
+            setDatasheet(s.data)
+        })
+        console.log(sheet)
+        console.log(header)
+        console.log(datasheet)
+    }, [])
 
     return (
         <div>
@@ -72,7 +56,7 @@ export default function Query() {
                 <Button variant="shadow" color="success" size="sm">查询</Button>
             </div>
             <Spacer y={4} />
-            {data && header && datasheet && <Table aria-label="table">
+            {header && datasheet && <Table aria-label="table">
                 <TableHeader columns={header}>
                     {(column: any) => <TableColumn key={column.key}>{column.label}</TableColumn>}
                 </TableHeader>
