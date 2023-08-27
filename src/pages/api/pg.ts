@@ -25,6 +25,7 @@ export default async function handle1(req: NextApiRequest, res: NextApiResponse)
     let contenct = req.body ? req.body.sql : defaultSql
     const result = await prisma.$queryRawUnsafe(contenct)
     const sheet = dataHandler(result)
+    console.log(sheet)
     res.status(200).json({ sheet })
 }
 
