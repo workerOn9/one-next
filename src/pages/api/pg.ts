@@ -20,11 +20,12 @@ type datas = {
 
 const defaultSql = "select 1 as test, current_date::text as today"
 
-export default async function handle1(req: NextApiRequest, res: NextApiResponse) {
-    console.log(req.body)
+export default async function handle(req: NextApiRequest, res: NextApiResponse) {
+    // console.log(req.body)
     let contenct = req.body ? req.body.sql : defaultSql
     const result = await prisma.$queryRawUnsafe(contenct)
     const sheet = dataHandler(result)
+    // console.log(sheet)
     res.status(200).json({ sheet })
 }
 

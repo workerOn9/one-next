@@ -1,27 +1,41 @@
-import useSWR from 'swr'
 import { Button, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from "@nextui-org/react"
-import { useEffect, useState } from 'react'
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+import { useState } from 'react'
 
 export default function Query() {
     const [sql, setSql] = useState('select 1 as test')
     const sqlChangeHandler = (e: any) => {
-        setSql(e.target.value)
+        setSql(e)
     }
 
-    const { data, error, isLoading, mutate } = useSWR('/api/pg', fetcher)
+    const fetcher = async (sql: {}) => {
+        // console.log(sql)
+        const res = await fetch("/api/pg", {
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(sql),
+            redirect: 'follow'
+        }).then((result) => result)
+        // console.log(res)
+        const data = res.ok ? res.json() : undefined
+        // console.log(data)
+        return data
+    }
     const [header, setHeader] = useState()
     const [datasheet, setDatasheet] = useState()
-    useEffect(() => {
-        // console.log(data)
+    const clickHandler = () => {
+        console.log(sql)
+        const data = fetcher({ sql: (sql as string) })
         if (data) {
-            setHeader(data.sheet.header)
-            setDatasheet(data.sheet.data)
+            data.then((res) => {
+                const s = res.sheet
+                setHeader(s.header)
+                setDatasheet(s.data)
+            })
         }
-        // console.log(header)
-        // console.log(datasheet)
-    }, [data, header, datasheet])
+    }
 
     return (
         <div>
@@ -35,10 +49,15 @@ export default function Query() {
             />
             <Spacer x={4} />
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button variant="shadow" color="success" size="sm">查询</Button>
+                <Button
+                    variant="shadow"
+                    color="success"
+                    size="sm"
+                    onPress={clickHandler}
+                >查询</Button>
             </div>
             <Spacer y={4} />
-            {data && header && datasheet && <Table aria-label="table">
+            {header && datasheet && <Table aria-label="table">
                 <TableHeader columns={header}>
                     {(column: any) => <TableColumn key={column.key}>{column.label}</TableColumn>}
                 </TableHeader>
