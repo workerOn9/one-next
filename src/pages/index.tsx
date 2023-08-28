@@ -25,7 +25,7 @@ export default function Home() {
                 />
                 <link href="/icon.png" rel="icon" />
             </NextHead>
-            <Navbar shouldHideOnScroll={true} maxWidth="2xl">
+            <Navbar shouldHideOnScroll={true} maxWidth="2xl" style={{ maxWidth: '95vw', margin: '0 auto' }}>
                 <NavbarBrand>
                     <PageLogo />
                     <p className="font-bold text-inherit">ONE NEXT</p>

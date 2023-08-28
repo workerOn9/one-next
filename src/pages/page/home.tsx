@@ -1,8 +1,8 @@
 import { Button, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from "@nextui-org/react"
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function Query() {
-    const [sql, setSql] = useState('select 1 as test')
+    const [sql, setSql] = useState("select 'world' as hello")
     const sqlChangeHandler = (e: any) => {
         setSql(e)
     }
@@ -26,7 +26,7 @@ export default function Query() {
     const [header, setHeader] = useState()
     const [datasheet, setDatasheet] = useState()
     const clickHandler = () => {
-        console.log(sql)
+        // console.log(sql)
         const data = fetcher({ sql: (sql as string) })
         if (data) {
             data.then((res) => {
@@ -36,6 +36,11 @@ export default function Query() {
             })
         }
     }
+
+    useEffect(() => {
+        setHeader(header)
+        setDatasheet(datasheet)
+    }, [header, datasheet])
 
     return (
         <div>
