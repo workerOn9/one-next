@@ -1,8 +1,5 @@
-import useSWR from 'swr'
 import { Button, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from "@nextui-org/react"
-import { useEffect, useState } from 'react'
-
-const defaultSql = "select 1 as test"
+import { useState } from 'react'
 
 export default function Query() {
     const [sql, setSql] = useState('select 1 as test')
@@ -11,7 +8,7 @@ export default function Query() {
     }
 
     const fetcher = async (sql: {}) => {
-        console.log(sql)
+        // console.log(sql)
         const res = await fetch("/api/pg", {
             method: 'post',
             headers: {
@@ -26,20 +23,19 @@ export default function Query() {
         // console.log(data)
         return data
     }
-
-    const data = fetcher({ sql: (sql as string) })
     const [header, setHeader] = useState()
     const [datasheet, setDatasheet] = useState()
-    useEffect(() => {
-        const sheet = data.then((res) => {
-            const s = res.sheet
-            setHeader(s.header)
-            setDatasheet(s.data)
-        })
-        console.log(sheet)
-        console.log(header)
-        console.log(datasheet)
-    }, [])
+    const clickHandler = () => {
+        console.log(sql)
+        const data = fetcher({ sql: (sql as string) })
+        if (data) {
+            data.then((res) => {
+                const s = res.sheet
+                setHeader(s.header)
+                setDatasheet(s.data)
+            })
+        }
+    }
 
     return (
         <div>
@@ -53,7 +49,12 @@ export default function Query() {
             />
             <Spacer x={4} />
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button variant="shadow" color="success" size="sm">查询</Button>
+                <Button
+                    variant="shadow"
+                    color="success"
+                    size="sm"
+                    onPress={clickHandler}
+                >查询</Button>
             </div>
             <Spacer y={4} />
             {header && datasheet && <Table aria-label="table">
