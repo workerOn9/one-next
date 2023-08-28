@@ -1,4 +1,4 @@
-import { Button, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from "@nextui-org/react"
+import { Button, Chip, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from "@nextui-org/react"
 import { useEffect, useState } from 'react'
 
 export default function Query() {
@@ -54,6 +54,8 @@ export default function Query() {
             />
             <Spacer x={4} />
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Chip size="sm" variant="light" style={{ fontSize: '10px' }}>默认 LIMIT 10</Chip>
+                <Spacer x={2} />
                 <Button
                     variant="shadow"
                     color="success"
