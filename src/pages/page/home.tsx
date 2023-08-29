@@ -9,7 +9,7 @@ export default function Query() {
 
     const fetcher = async (sql: {}) => {
         // console.log(sql)
-        const res = await fetch("/api/pg", {
+        const res = await fetch("/api/prismaclient", {
             method: 'post',
             headers: {
                 'Content-Type': 'application/json',
