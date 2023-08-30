@@ -6,7 +6,7 @@ import { defaultSql, limitRegex } from "@/utils/sqlCommonArgs"
 const { Pool } = pg
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.NATIVE_PG_URL,
 })
 
 /**
