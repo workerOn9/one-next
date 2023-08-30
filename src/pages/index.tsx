@@ -7,9 +7,9 @@ import NextHead from "next/head"
 import Query from "./page/home"
 
 export default function Home() {
+    // Theme
     const { theme, setTheme } = useTheme()
     const handleClick = () => {
-        console.log(theme)
         setTheme(theme === "light" ? "dark" : "light")
     }
 

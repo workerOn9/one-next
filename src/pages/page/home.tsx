@@ -2,14 +2,14 @@ import { Button, Chip, Spacer, Table, TableBody, TableCell, TableColumn, TableHe
 import { useEffect, useState } from 'react'
 
 export default function Query() {
+    // SQL
     const [sql, setSql] = useState("select 'world' as hello")
     const sqlChangeHandler = (e: any) => {
         setSql(e)
     }
-
+    // 接入API
     const fetcher = async (sql: {}) => {
-        // console.log(sql)
-        const res = await fetch("/api/prismaclient", {
+        const res = await fetch("/api/pgclient", {
             method: 'post',
             headers: {
                 'Content-Type': 'application/json',
@@ -18,15 +18,13 @@ export default function Query() {
             body: JSON.stringify(sql),
             redirect: 'follow'
         }).then((result) => result)
-        // console.log(res)
         const data = res.ok ? res.json() : undefined
-        // console.log(data)
         return data
     }
     const [header, setHeader] = useState()
     const [datasheet, setDatasheet] = useState()
+    // 按钮事件处理
     const clickHandler = () => {
-        // console.log(sql)
         const data = fetcher({ sql: (sql as string) })
         if (data) {
             data.then((res) => {
@@ -36,7 +34,7 @@ export default function Query() {
             })
         }
     }
-
+    // 渲染
     useEffect(() => {
         setHeader(header)
         setDatasheet(datasheet)
