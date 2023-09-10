@@ -1,9 +1,9 @@
 import { Button, Card, CardBody, Chip, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from "@nextui-org/react"
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import JsonView from "react18-json-view"
 import 'react18-json-view/src/style.css'
 
-export default function Query() {
+function Query() {
     // SQL
     const [sql, setSql] = useState("select 'world' as hello")
     const sqlChangeHandler = (e: any) => {
@@ -124,3 +124,5 @@ export default function Query() {
         </div>
     )
 }
+
+export default memo(Query)
