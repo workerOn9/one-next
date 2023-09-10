@@ -1,11 +1,11 @@
 import { LightIcon } from "@/components/Light"
 import { NightIcon } from "@/components/Night"
-import { PageLogo } from "@/components/PageLogo"
 import { Link, Navbar, NavbarBrand, NavbarContent, NavbarItem, Switch } from "@nextui-org/react"
 import { useTheme } from "next-themes"
 import NextHead from "next/head"
 import { useEffect, useState } from "react"
 import { Layout } from "@/components/Layout"
+import Image from "next/image"
 
 export default function Home() {
     // Theme
@@ -32,20 +32,19 @@ export default function Home() {
                 <link href="/icon.png" rel="icon" />
             </NextHead>
             <Layout showContent={activeTab}>
-            <Navbar shouldHideOnScroll={true} maxWidth="2xl" style={{ maxWidth: '95vw', margin: '0 auto' }}>
+            <Navbar shouldHideOnScroll={true} style={{ maxWidth: '90vw', margin: '0 auto' }}>
                 <NavbarBrand>
-                    <PageLogo />
-                    <p className="font-bold text-inherit">ONE NEXT</p>
+                    <Image src="/badage.png" width={32} height={32} alt={"me"} />
                 </NavbarBrand>
                 <NavbarContent className="sm:flex gap-4" justify="center">
                     <NavbarItem isActive={activeTab === 'query'}>
-                        <Link isBlock color="foreground" onClick={() => setActiveTab('query')}>SQL探索</Link>
+                        <Link isBlock color={activeTab === 'query' ? "primary" : "foreground"} onClick={() => setActiveTab('query')}>SQL探索</Link>
                     </NavbarItem>
                     <NavbarItem isActive={activeTab === 'chat'}>
-                        <Link isBlock color="foreground" onClick={() => setActiveTab('chat')}>聊天</Link>
+                        <Link isBlock color={activeTab === 'chat' ? "primary" : "foreground"} onClick={() => setActiveTab('chat')}>聊天</Link>
                     </NavbarItem>
                     <NavbarItem>
-                        <Link isBlock color="foreground" onClick={() => setActiveTab('none')}>未定</Link>
+                        <Link isBlock color={activeTab === 'none' ? "danger" : "foreground"} onClick={() => setActiveTab('none')}>未定</Link>
                     </NavbarItem>
                 </NavbarContent>
                 <NavbarContent justify="end">

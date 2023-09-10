@@ -14,6 +14,7 @@ module.exports = {
   darkMode: "class",
   plugins: [nextui(
     {
+      addCommonColors: true,
       layout: {
         spacingUnit: 4, // in px
         disabledOpacity: ".5", // this value is applied as opacity-[value] when the component is disabled
@@ -71,6 +72,14 @@ module.exports = {
                 "0px 0px 30px 0px rgb(0 0 0 / 0.07), 0px 30px 60px 0px rgb(0 0 0 / 0.26), inset 0px 0px 1px 0px rgb(255 255 255 / 0.15)",
             },
           },
+          colors: {
+            background: "#18181b",
+            foreground: "#a1a1aa",
+            primary: {
+              foreground: "#e6f1fe",
+              DEFAULT: "#338ef7",
+            }
+          }
         },
       },
     })],
