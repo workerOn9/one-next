@@ -1,10 +1,11 @@
 import { LightIcon } from "@/components/Light"
 import { NightIcon } from "@/components/Night"
 import { PageLogo } from "@/components/PageLogo"
-import { Button, Link, Navbar, NavbarBrand, NavbarContent, NavbarItem, Switch } from "@nextui-org/react"
+import { Link, Navbar, NavbarBrand, NavbarContent, NavbarItem, Switch } from "@nextui-org/react"
 import { useTheme } from "next-themes"
 import NextHead from "next/head"
-import Query from "./page/home"
+import { useEffect, useState } from "react"
+import { Layout } from "@/components/Layout"
 
 export default function Home() {
     // Theme
@@ -12,6 +13,11 @@ export default function Home() {
     const handleClick = () => {
         setTheme(theme === "light" ? "dark" : "light")
     }
+    // Tab
+    const [activeTab, setActiveTab] = useState('query')
+    useEffect(() => {
+        setActiveTab(activeTab)
+    }, [activeTab])
 
     return (
         <main>
@@ -25,19 +31,21 @@ export default function Home() {
                 />
                 <link href="/icon.png" rel="icon" />
             </NextHead>
+            <Layout showContent={activeTab}>
             <Navbar shouldHideOnScroll={true} maxWidth="2xl" style={{ maxWidth: '95vw', margin: '0 auto' }}>
                 <NavbarBrand>
                     <PageLogo />
                     <p className="font-bold text-inherit">ONE NEXT</p>
                 </NavbarBrand>
                 <NavbarContent className="sm:flex gap-4" justify="center">
-                    <NavbarItem isActive>
-                        <Button color="primary" variant="shadow" size="sm" radius="lg" disableAnimation={true}>
-                            Home
-                        </Button>
+                    <NavbarItem isActive={activeTab === 'query'}>
+                        <Link isBlock color="foreground" onClick={() => setActiveTab('query')}>SQL探索</Link>
+                    </NavbarItem>
+                    <NavbarItem isActive={activeTab === 'chat'}>
+                        <Link isBlock color="foreground" onClick={() => setActiveTab('chat')}>聊天</Link>
                     </NavbarItem>
                     <NavbarItem>
-                        <Link isBlock href="#" color="foreground">UnSelected</Link>
+                        <Link isBlock color="foreground" onClick={() => setActiveTab('none')}>未定</Link>
                     </NavbarItem>
                 </NavbarContent>
                 <NavbarContent justify="end">
@@ -53,10 +61,7 @@ export default function Home() {
                     </NavbarItem>
                 </NavbarContent>
             </Navbar>
-            {/* Content宽度控制 */}
-            <div style={{ maxWidth: '90vw', margin: '0 auto' }}>
-                <Query />
-            </div>
+            </Layout>
         </main>
     )
 }
