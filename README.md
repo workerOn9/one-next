@@ -36,3 +36,21 @@ e.g. `postgres://username:passowrd@host:port/database`
     "sql": "select current_date"
 }
 ```
+
+## 聊天
+
+> 需要预先在项目更目录下创建`.env`并填充以下部份参数
+
+### AzureOpenAI
+
+* AZURE_ENDPOINT
+* AZURE_OPENAI_KEY
+* AZURE_OPENAI_MODEL: 本人使用`gpt35`和`gpt4`，服务端和客户端相同，如果你的不同特别需要在客户端也就是页面代码上修改映射
+
+## SQL-AST
+
+```bash
+npm i node-sql-parser
+```
+
+* `/api/sqlparse`
