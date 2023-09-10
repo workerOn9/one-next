@@ -32,7 +32,7 @@ export default function Chat() {
             {/**聊天记录渲染 */}
             <Watermark content="workeron9.info">
             <ScrollShadow className="w-[300px] h-[400px]">
-                <div ref={scrollRef} style={{ overflow: "auto", top: 5, padding: "0 10px", width: "100%", maxHeight: "88vh" }}>
+                <div ref={scrollRef} style={{ overflow: "auto", top: 5, padding: "0 10px", width: "100%", maxHeight: "75vh" }}>
                     {messages.map(m => {
                         return (
                             <li key={m.id} style={{ listStyleType: "none", display: 'flex', padding: "5px 10px", justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
@@ -54,6 +54,7 @@ export default function Chat() {
             {isLoading && <div style={{ display: 'flex', padding: "10px 0", justifyContent: 'center', alignItems: 'center' }}>
                 <CircularProgress color="primary" />
             </div>}
+            <Spacer x={4} />
             {/**输入框渲染 */}
             <div style={{ position: "fixed", justifyContent: 'center', bottom: 10, padding: "0 10px", width: '90vw' }}>
                 <form onSubmit={handleSubmit}>
