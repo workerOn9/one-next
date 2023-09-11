@@ -24,6 +24,7 @@ export default async function ask(req: Request) {
     const response = await fetch(url, {
         method: 'POST',
         headers: {
+            Accept: "text/event-stream",
             'Content-Type': 'application/json; charset=utf-8',
             'api-key': `${key}`
         },
