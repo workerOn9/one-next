@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "bun:install": "bun install --registry=http://registry.npmmirror.com",
+    "bun:start": "bun run build && bun run start",
+    "bun:dev": "bun run build && bun run dev"
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.5",
