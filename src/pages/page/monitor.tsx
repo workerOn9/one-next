@@ -1,47 +1,73 @@
-import {memo, useEffect, useState} from "react";
-import {getKeyValue, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@nextui-org/react";
-import useSWR from "swr";
+import {memo, useEffect, useState} from "react"
+import {getKeyValue, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@nextui-org/react"
+import useSWR from "swr"
+import {DatePicker, DatePickerProps} from "antd"
 
 const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args).then((res) => res.json())
 
-const rows = [
+const header = [
     {
-        key: "0",
-        statDate: "20230919",
-        queryEndIn5Min: "2023-09-19 11:05:00",
-        count: 5
+        key: "statDate",
+        label: "日期"
     },
     {
-        key: "1",
-        statDate: "20230919"
+        key: "queryEndIn5Min",
+        label: "结束时间（每5分钟）"
+    },
+    {
+        key: "count",
+        label: "计数"
+    },
+    {
+        key: "first",
+        label: "起点"
+    },
+    {
+        key: "last",
+        label: "末位"
     }
 ]
 
 function Monitor() {
-    // const {
-    //     data,
-    //     isLoading
-    // } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getExtremePoints`, fetcher)
+    const [dateSelect, setDateSelect] = useState('')
+    useEffect(() => {
+        setDateSelect(dateSelect)
+    }, [dateSelect])
+
+    const {
+        data,
+        isLoading
+    } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getExtremePoints?date=${dateSelect}`, fetcher, {
+        keepPreviousData: true,
+    })
+
+    const onChange: DatePickerProps['onChange'] = (date, dateString) => {
+        // console.log(date, dateString)
+        if (dateString) setDateSelect(dateString.replaceAll('-', ''))
+    }
 
     return (
-        <div style={{maxWidth: '90vw', margin: '0 auto'}}>
+        <div style={{padding: "10px 0", maxWidth: '90vw', maxHeight: '90vw', margin: '0 auto'}}>
+            <DatePicker onChange={onChange} />
+            <Spacer y={2}/>
             <Table aria-label="table" selectionMode="single" color="success" isHeaderSticky={true} isCompact={true}
                    isStriped={true}
                    topContent={<div>Sheet</div>}>
-                <TableHeader>
-                    <TableColumn isRowHeader={true}>queryEndIn5Min</TableColumn>
-                    <TableColumn isRowHeader={true}>count</TableColumn>
-                    <TableColumn isRowHeader={true}>first</TableColumn>
-                    <TableColumn isRowHeader={true}>last</TableColumn>
-                    <TableColumn isRowHeader={true}>statDate</TableColumn>
+                <TableHeader columns={header}>
+                    {(column) => {
+                        // console.info(column)
+                        return <TableColumn key={column.key}>{column.label}</TableColumn>
+                    }}
                 </TableHeader>
-                <TableBody items={rows}>
+                <TableBody items={data?.data ?? []} emptyContent={"没有数据"}>
                     {(item: any) => {
-                        console.info(item)
-                        return <TableRow key={item.key}>
+                        // console.info(item)
+                        return <TableRow key={item.queryEndIn5Min}>
                             {(columnKey) => {
-                                console.info(columnKey)
-                                return <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+                                // console.info(columnKey)
+                                const obj = getKeyValue(item, columnKey)
+                                const obj_type = typeof(obj)
+                                return <TableCell>{obj_type === 'object' && (columnKey === 'first' || columnKey === 'last') ? obj.indict : obj}</TableCell>
                             }}
                         </TableRow>
                     }}
