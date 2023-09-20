@@ -1,5 +1,15 @@
 import {memo, useEffect, useState} from "react"
-import {getKeyValue, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@nextui-org/react"
+import {
+    CircularProgress,
+    getKeyValue,
+    Spacer,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow
+} from "@nextui-org/react"
 import useSWR from "swr"
 import {DatePicker, DatePickerProps} from "antd"
 
@@ -52,14 +62,14 @@ function Monitor() {
             <Spacer y={2}/>
             <Table aria-label="table" selectionMode="single" color="success" isHeaderSticky={true} isCompact={true}
                    isStriped={true}
-                   topContent={<div>Sheet</div>}>
+                   topContent={<h1>寻找极值</h1>}>
                 <TableHeader columns={header}>
                     {(column) => {
                         // console.info(column)
                         return <TableColumn key={column.key}>{column.label}</TableColumn>
                     }}
                 </TableHeader>
-                <TableBody items={data?.data ?? []} emptyContent={"没有数据"}>
+                <TableBody items={data?.data ?? []} emptyContent={"没有数据"} isLoading={isLoading} loadingContent={<div style={{ display: 'flex', padding: "100px 0", justifyContent: 'center' }}><CircularProgress color="primary" content="正在加载" /></div>}>
                     {(item: any) => {
                         // console.info(item)
                         return <TableRow key={item.queryEndIn5Min}>
