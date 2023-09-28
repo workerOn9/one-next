@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react"
+import React, {useEffect, useState} from "react"
 import {DatePicker, DatePickerProps} from "antd"
 import {
     CircularProgress,
@@ -11,7 +11,6 @@ import {
     TableRow
 } from "@nextui-org/react"
 import dayjs from "dayjs"
-import locale from "antd/es/date-picker/locale/zh_CN"
 import useSWR from "swr";
 
 const header = [
@@ -50,6 +49,15 @@ const month = String(today.getMonth() + 1).padStart(2, '0')
 const day = String(today.getDate()).padStart(2, '0')
 
 function Nearby() {
+    const [locale, setLocale] = React.useState<any>()
+    React.useEffect(()=> {
+        (async ()=> {
+            const zh_CN = (await import('antd/es/date-picker/locale/zh_CN')).default
+            const en_US = (await import('antd/es/date-picker/locale/en_US')).default
+            setLocale(zh_CN)
+        })()
+    }, [])
+
     const [dateSelect, setDateSelect] = useState(`${year}${month}${day}`)
     useEffect(() => {
         console.info(dateSelect)

@@ -1,6 +1,6 @@
 import Extremum from "@/pages/page/monsub/extremum"
-import {Spacer} from "@nextui-org/react";
-import Nearby from "@/pages/page/monsub/nearby";
+import {Spacer} from "@nextui-org/react"
+import Nearby from "@/pages/page/monsub/nearby"
 
 function Monitor() {
     return (
