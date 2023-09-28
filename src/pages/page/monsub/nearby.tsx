@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from "react"
 import {DatePicker, DatePickerProps} from "antd"
 import {
-    CircularProgress,
-    getKeyValue,
+    getKeyValue, Input,
     Spacer,
     Table,
     TableBody, TableCell,
@@ -11,7 +10,7 @@ import {
     TableRow
 } from "@nextui-org/react"
 import dayjs from "dayjs"
-import useSWR from "swr";
+import useSWR from "swr"
 
 const header = [
     {
@@ -40,7 +39,16 @@ const header = [
     }
 ]
 
-const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args).then((res) => res.json())
+interface requestData {
+    data: dataProps
+}
+
+interface dataProps {
+    indicts: string[],
+    statDate: string
+}
+
+const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.json())
 
 // 获取今日日期作为默认日期
 const today = new Date()
@@ -64,10 +72,31 @@ function Nearby() {
         setDateSelect(dateSelect)
     }, [dateSelect])
 
+    const [requestBody, setRequestBody] = useState<any>(JSON.stringify({
+        data: {
+            indicts: [],
+            statDate: dateSelect
+        }
+    }))
+    useEffect(() => {
+        setRequestBody(requestBody)
+    }, [requestBody])
+    const contentChange = (e: string) => {
+        if (e) {
+            console.log(e)
+            setRequestBody(JSON.stringify({
+                data: {
+                    indicts: e.split(','),
+                    statDate: dateSelect
+                }
+            }))
+        }
+    }
+
     const {
         data,
         isLoading
-    } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getPointRelatedRecord`, fetcher, {
+    } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getPointRelatedRecord`, (url) => fetcher(url, requestBody), {
         keepPreviousData: true,
     })
 
@@ -78,7 +107,11 @@ function Nearby() {
 
     return (
         <div>
-            <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale}/>
+            <div style={{display: 'flex', justifyContent: 'flex-start'}}>
+                <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale}/>
+                <Spacer x={2}/>
+                <Input type="email" variant="underlined" label="QueryId" isClearable={true} style={{display: 'inline-block'}} onValueChange={contentChange}/>
+            </div>
             <Spacer y={2}/>
             <Table aria-label="table" selectionMode="single" color="success" isHeaderSticky={true} isCompact={true}
                    isStriped={true}
@@ -90,6 +123,15 @@ function Nearby() {
                     }}
                 </TableHeader>
                 <TableBody items={data?.data ?? []} emptyContent={"没有数据"}>
+                    {(item: any) => {
+                        // console.info(item)
+                        return <TableRow key={item.queryId}>
+                            {(columnKey) => {
+                                // console.info(columnKey)
+                                return <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+                            }}
+                        </TableRow>
+                    }}
                 </TableBody>
             </Table>
         </div>

@@ -2,6 +2,8 @@ import React, {useEffect, useState} from "react"
 import useSWR from "swr"
 import {DatePicker, DatePickerProps} from "antd"
 import {
+    Button,
+    Chip,
     CircularProgress,
     getKeyValue,
     Spacer,
@@ -9,11 +11,11 @@ import {
     TableBody, TableCell,
     TableColumn,
     TableHeader,
-    TableRow
+    TableRow, Tooltip
 } from "@nextui-org/react"
 import dayjs from "dayjs"
 
-const header = [
+const columns = [
     {
         key: "statDate",
         label: "日期"
@@ -27,12 +29,8 @@ const header = [
         label: "计数"
     },
     {
-        key: "first",
-        label: "起点"
-    },
-    {
-        key: "last",
-        label: "末位"
+        key: "errorPoint",
+        label: "错误点"
     }
 ]
 
@@ -56,7 +54,7 @@ function Extremum() {
 
     const [dateSelect, setDateSelect] = useState(`${year}${month}${day}`)
     useEffect(() => {
-        console.info(dateSelect)
+        // console.info(dateSelect)
         setDateSelect(dateSelect)
     }, [dateSelect])
     // 获取API数据
@@ -71,18 +69,57 @@ function Extremum() {
         // console.log(date, dateString)
         if (dateString) setDateSelect(dateString.replaceAll('-', ''))
     }
+    // 按钮响应
+    const btnHandler = (e: any, points: string[]) => {
+        console.info(points)
+    }
+
+    const renderCell = React.useCallback((data: any, columnKey: React.Key) => {
+        const cellValue = data[columnKey]
+        // console.info(data, columnKey, data[columnKey])
+        switch (columnKey) {
+            case "errorPoint":
+                // console.log(data['first'])
+                const first_point = data['first']['queryId']
+                // const first_duration = data['first']['duration']
+                const first_indict = data['first']['indict']
+                const last_point = data['last']['queryId']
+                // const last_duration = data['last']['duration']
+                const last_indict = data['last']['indict']
+                let points = [first_indict]
+                if (first_point && last_point && last_point != first_point) points.push(last_indict)
+                return <div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'center'}}>
+                    {first_point && <Chip color="warning" variant="flat">{first_indict}</Chip>}
+                    {first_point && last_point && first_point != last_point && <Spacer x={1}/>}
+                    {first_point && last_point && first_point != last_point &&
+                        <div style={{display: 'flex', justifyContent: 'flex-start'}}>
+                            <Chip color="default" variant="light">...</Chip>
+                            <Spacer x={1}/>
+                            <Chip color="warning" variant="flat">{last_indict}</Chip>
+                        </div>}
+                    <Spacer x={4}/>
+                    <Button color="success" size="sm" radius="full" variant="flat" onPress={(e) => btnHandler(e, points)}>
+                        查看
+                    </Button>
+                </div>
+            default:
+                return cellValue
+        }
+    }, [])
 
     return (
         <div>
             <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale}/>
             <Spacer y={2}/>
-            <Table aria-label="table" selectionMode="single" color="success" isHeaderSticky={true} isCompact={true}
+            <Table aria-label="table"
+                   // selectionMode="single"
+                   color="success" isHeaderSticky={true} isCompact={true}
                    isStriped={true}
                    topContent={<h1>寻找极值</h1>}>
-                <TableHeader columns={header}>
+                <TableHeader columns={columns}>
                     {(column) => {
                         // console.info(column)
-                        return <TableColumn key={column.key}>{column.label}</TableColumn>
+                        return <TableColumn key={column.key} align="start">{column.label}</TableColumn>
                     }}
                 </TableHeader>
                 <TableBody items={data?.data ?? []} emptyContent={"没有数据"} isLoading={isLoading}
@@ -93,9 +130,7 @@ function Extremum() {
                         return <TableRow key={item.queryEndIn5Min}>
                             {(columnKey) => {
                                 // console.info(columnKey)
-                                const obj = getKeyValue(item, columnKey)
-                                const obj_type = typeof (obj)
-                                return <TableCell>{obj_type === 'object' && (columnKey === 'first' || columnKey === 'last') ? obj.indict : obj}</TableCell>
+                                return <TableCell>{renderCell(item, columnKey)}</TableCell>
                             }}
                         </TableRow>
                     }}
