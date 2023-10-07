@@ -1,17 +1,16 @@
-import React, {useEffect, useState} from "react"
+import React, { useEffect, useState } from "react"
 import useSWR from "swr"
-import {DatePicker, DatePickerProps} from "antd"
+import { DatePicker, DatePickerProps } from "antd"
 import {
     Button,
     Chip,
     CircularProgress,
-    getKeyValue,
     Spacer,
     Table,
     TableBody, TableCell,
     TableColumn,
     TableHeader,
-    TableRow, Tooltip
+    TableRow
 } from "@nextui-org/react"
 import dayjs from "dayjs"
 
@@ -43,9 +42,9 @@ const month = String(today.getMonth() + 1).padStart(2, '0')
 const day = String(today.getDate()).padStart(2, '0')
 
 function Extremum() {
-    const [locale, setLocale] = React.useState<any>()
-    React.useEffect(()=> {
-        (async ()=> {
+    const [locale, setLocale] = useState<any>()
+    useEffect(() => {
+        (async () => {
             const zh_CN = (await import('antd/es/date-picker/locale/zh_CN')).default
             const en_US = (await import('antd/es/date-picker/locale/en_US')).default
             setLocale(zh_CN)
@@ -71,7 +70,15 @@ function Extremum() {
     }
     // 按钮响应
     const btnHandler = (e: any, points: string[]) => {
-        console.info(points)
+        // console.info(points.join(","))
+        const result = points.join(",")
+        navigator.clipboard.writeText(result)
+            .then(() => {
+                console.log("已复制: {}", result)
+            })
+            .catch((error) => {
+                console.error("无法复制到剪贴板:", error)
+            })
     }
 
     const renderCell = React.useCallback((data: any, columnKey: React.Key) => {
@@ -88,18 +95,18 @@ function Extremum() {
                 const last_indict = data['last']['indict']
                 let points = [first_indict]
                 if (first_point && last_point && last_point != first_point) points.push(last_indict)
-                return <div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'center'}}>
+                return <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
                     {first_point && <Chip color="warning" variant="flat">{first_indict}</Chip>}
-                    {first_point && last_point && first_point != last_point && <Spacer x={1}/>}
+                    {first_point && last_point && first_point != last_point && <Spacer x={1} />}
                     {first_point && last_point && first_point != last_point &&
-                        <div style={{display: 'flex', justifyContent: 'flex-start'}}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                             <Chip color="default" variant="light">...</Chip>
-                            <Spacer x={1}/>
+                            <Spacer x={1} />
                             <Chip color="warning" variant="flat">{last_indict}</Chip>
                         </div>}
-                    <Spacer x={4}/>
+                    <Spacer x={4} />
                     <Button color="success" size="sm" radius="full" variant="flat" onPress={(e) => btnHandler(e, points)}>
-                        查看
+                        COPY
                     </Button>
                 </div>
             default:
@@ -109,13 +116,13 @@ function Extremum() {
 
     return (
         <div>
-            <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale}/>
-            <Spacer y={2}/>
+            <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale} />
+            <Spacer y={2} />
             <Table aria-label="table"
-                   // selectionMode="single"
-                   color="success" isHeaderSticky={true} isCompact={true}
-                   isStriped={true}
-                   topContent={<h1>寻找极值</h1>}>
+                // selectionMode="single"
+                color="success" isHeaderSticky={true} isCompact={true}
+                isStriped={true}
+                topContent={<h1>寻找极值</h1>}>
                 <TableHeader columns={columns}>
                     {(column) => {
                         // console.info(column)
@@ -123,8 +130,8 @@ function Extremum() {
                     }}
                 </TableHeader>
                 <TableBody items={data?.data ?? []} emptyContent={"没有数据"} isLoading={isLoading}
-                           loadingContent={<div style={{display: 'flex', padding: "100px 0", justifyContent: 'center'}}>
-                               <CircularProgress color="primary" content="正在加载"/></div>}>
+                    loadingContent={<div style={{ display: 'flex', padding: "100px 0", justifyContent: 'center' }}>
+                        <CircularProgress color="primary" content="正在加载" /></div>}>
                     {(item: any) => {
                         // console.info(item)
                         return <TableRow key={item.queryEndIn5Min}>

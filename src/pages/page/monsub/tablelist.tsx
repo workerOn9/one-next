@@ -1,18 +1,8 @@
-import React, { useEffect, useState } from "react"
-import { DatePicker, DatePickerProps } from "antd"
-import {
-    Button,
-    getKeyValue,
-    Spacer,
-    Table,
-    TableBody, TableCell,
-    TableColumn,
-    TableHeader,
-    TableRow,
-    Textarea
-} from "@nextui-org/react"
+import { useEffect, useState } from 'react'
 import dayjs from "dayjs"
 import useSWR from "swr"
+import { Button, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from '@nextui-org/react'
+import { DatePicker, DatePickerProps } from 'antd'
 
 const header = [
     {
@@ -36,6 +26,38 @@ const header = [
         label: "耗时(ms)"
     },
     {
+        key: "tableRead",
+        label: "读表"
+    },
+    {
+        key: "engineType",
+        label: "引擎"
+    },
+    {
+        key: "cpuTime",
+        label: "cpu时间(ms)"
+    },
+    {
+        key: "memoryUse",
+        label: "内存消耗(mb)"
+    },
+    {
+        key: "shuffleUse",
+        label: "shuffle消耗(mb)"
+    },
+    {
+        key: "physicalReads",
+        label: "物理读"
+    },
+    {
+        key: "errorMsg",
+        label: "错误信息"
+    },
+    {
+        key: "sessionId",
+        label: "session id"
+    },
+    {
         key: "sessionStart",
         label: "session开始时间"
     }
@@ -46,8 +68,19 @@ interface requestData {
 }
 
 interface dataProps {
-    indicts: string[],
-    statDate: string
+    statDate: string,
+    startTime?: string,
+    endTime?: string,
+    queryIdList?: string[],
+    statusList?: string[],
+    errorMsgSearch?: string,
+    page: Page,
+    sortTypeList?: string[]
+}
+
+interface Page {
+    pageNo: number | 1,
+    pageSize: number | 20
 }
 
 const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.json())
@@ -58,7 +91,7 @@ const year = today.getFullYear()
 const month = String(today.getMonth() + 1).padStart(2, '0')
 const day = String(today.getDate()).padStart(2, '0')
 
-function Nearby() {
+function Tablelist() {
     const [locale, setLocale] = useState<any>()
     useEffect(() => {
         (async () => {
@@ -76,8 +109,12 @@ function Nearby() {
 
     const [requestBody, setRequestBody] = useState<any>(JSON.stringify({
         data: {
-            indicts: [],
-            statDate: dateSelect
+            statDate: dateSelect,
+            queryIdList: [],
+            page: {
+                pageNo: 1,
+                pageSize: 20
+            }
         }
     }))
     const [queryIds, setQueryIds] = useState<string[]>([])
@@ -100,8 +137,12 @@ function Nearby() {
             // console.log(queryIds, dateSelect)
             setRequestBody(JSON.stringify({
                 data: {
-                    indicts: queryIds,
-                    statDate: dateSelect
+                    queryIdList: queryIds,
+                    statDate: dateSelect,
+                    page: {
+                        pageNo: 1,
+                        pageSize: 20
+                    }
                 }
             }))
         }
@@ -110,32 +151,13 @@ function Nearby() {
     const {
         data,
         isLoading
-    } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getPointRelatedRecord`, (url) => fetcher(url, requestBody), {
+    } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getList`, (url) => fetcher(url, requestBody), {
         keepPreviousData: true,
     })
 
     const onChange: DatePickerProps['onChange'] = (date, dateString) => {
         // console.log(date, dateString)
         if (dateString) setDateSelect(dateString.replaceAll('-', ''))
-    }
-
-    const [selectedKeys, setSelectedKeys] = useState(new Set([]))
-    useEffect(() => {
-        // console.info(selectedKeys)
-        setSelectedKeys(selectedKeys)
-    }, [selectedKeys])
-
-    // 按钮响应
-    const btnHandler = () => {
-        // console.log(selectedKeys)
-        const result = Array.from(selectedKeys).join(",")
-        navigator.clipboard.writeText(result)
-            .then(() => {
-                console.log("已复制: {}", result)
-            })
-            .catch((error) => {
-                console.error("无法复制到剪贴板:", error)
-            })
     }
 
     return (
@@ -148,33 +170,31 @@ function Nearby() {
                     <Spacer y={1} />
                     <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                     <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>Summit</Button>
-                    <Button color="success" size="sm" radius="full" variant="flat" onPress={btnHandler}>COPY</Button>
                     </div>
                 </div>
             </div>
             <Spacer y={2} />
-            <Table aria-label="table" selectionMode="multiple" color="primary" isHeaderSticky={true} isCompact={true}
-                selectedKeys={selectedKeys}
-                onSelectionChange={(keys: any) => {
-                    console.info(keys)
-                    setSelectedKeys(keys)
-                    console.info(selectedKeys)
-                }}
+            <Table aria-label="table" selectionMode="single" color="primary" isHeaderSticky={true} isCompact={true}
                 isStriped={true}
-                topContent={<h1>获取临近记录</h1>}>
+                topContent={<h1>获取日志记录</h1>}>
                 <TableHeader columns={header}>
                     {(column) => {
                         // console.info(column)
                         return <TableColumn key={column.key}>{column.label}</TableColumn>
                     }}
                 </TableHeader>
-                <TableBody items={data?.data ?? []} emptyContent={"没有数据"}>
+                <TableBody items={data?.data?.total_datas ?? []} emptyContent={"没有数据"}>
                     {(item: any) => {
                         // console.info(item)
                         return <TableRow key={item.queryId}>
                             {(columnKey) => {
+                                const obj = getKeyValue(item, columnKey)
                                 // console.info(columnKey)
-                                return <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+                                if (columnKey === 'tableRead' || columnKey === 'engineType') {
+                                    // obj = JSON.stringify(obj)
+                                    return <TableCell>{JSON.stringify(obj)}</TableCell>
+                                }
+                                return <TableCell>{obj}</TableCell>
                             }}
                         </TableRow>
                     }}
@@ -184,4 +204,4 @@ function Nearby() {
     )
 }
 
-export default Nearby
+export default Tablelist

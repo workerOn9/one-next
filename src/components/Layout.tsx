@@ -7,8 +7,8 @@ export const Layout = ({ children, showContent }: { children: React.ReactNode, s
         {children}
         {(() => {
             switch (showContent) {
-                // case 'chat':
-                //     return <Chat />
+                case 'chat':
+                    return <Chat />
                 case 'query':
                     return <Query />
                 default:
