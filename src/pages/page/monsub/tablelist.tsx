@@ -191,7 +191,7 @@ function Tablelist() {
                 <Card><CardBody>{JSON.stringify(requestBody)}</CardBody></Card> */}
             </div>
             <Spacer y={2} />
-            <Table aria-label="table" selectionMode="single" color="primary" isHeaderSticky={true} isCompact={true}
+            <Table aria-label="table" color="primary" isHeaderSticky={true} isCompact={true}
                 isStriped={true}
                 topContent={<h1>获取日志记录</h1>}>
                 <TableHeader columns={header}>
