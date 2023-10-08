@@ -165,7 +165,7 @@ function Tablelist() {
     //     // keepPreviousData: true,
     // })
 
-    const [data, setData] = useState()
+    const [data, setData] = useState<any>()
     useEffect(() => {
         setData(data)
     }, [data])

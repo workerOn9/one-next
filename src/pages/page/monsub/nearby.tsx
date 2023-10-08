@@ -122,7 +122,7 @@ function Nearby() {
     // } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getPointRelatedRecord`, (url) => fetcher(url, requestBody), {
     //     keepPreviousData: true,
     // })
-    const [data, setData] = useState()
+    const [data, setData] = useState<any>()
     useEffect(() => {
         setData(data)
     }, [data])
