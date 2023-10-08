@@ -1,7 +1,7 @@
 import { Button, Card, CardBody, Spacer, Textarea } from "@nextui-org/react"
 import { useEffect, useState } from "react"
 import dayjs from "dayjs"
-import useSWR from "swr"
+// import useSWR from "swr"
 import { DatePicker, DatePickerProps } from 'antd'
 import Markdown from "@/components/Markdown"
 
@@ -14,7 +14,12 @@ interface dataProps {
     queryId: string
 }
 
-const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.text())
+// const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.text())
+
+function linkFetch(body: any) {
+    const url = "https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getSql"
+    return fetch(url, { method: 'POST', body }).then((res) => res.text())
+}
 
 // 获取今日日期作为默认日期
 const today = new Date()
@@ -45,9 +50,9 @@ function Showsql() {
         }
     }))
     const [queryId, setQueryId] = useState<string>("")
-    useEffect(() => {
-        setRequestBody(requestBody)
-    }, [requestBody])
+    // useEffect(() => {
+    //     setRequestBody(requestBody)
+    // }, [requestBody])
     useEffect(() => {
         setQueryId(queryId)
     }, [queryId])
@@ -58,25 +63,33 @@ function Showsql() {
         }
     }
 
-    const onChangeQueryIds = () => {
+    const onChangeQueryIds = async () => {
         // console.log(queryIds)
         if (queryId && dateSelect) {
             // console.log(queryIds, dateSelect)
+            setDateSelect(dateSelect)
+            setQueryId(queryId)
             setRequestBody(JSON.stringify({
                 data: {
                     queryId: queryId,
                     statDate: dateSelect
                 }
             }))
+            const res = await linkFetch(requestBody)
+            if (res) setData(JSON.parse(decodeURIComponent(res)).replace(/^"(.*)"$/, '$1').replace(/\\"/g, '"'))
         }
     }
 
-    const {
-        data,
-        isLoading
-    } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getSql`, (url) => fetcher(url, requestBody), {
-        keepPreviousData: true,
-    })
+    // const {
+    //     data,
+    //     isLoading
+    // } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getSql`, (url) => fetcher(url, requestBody), {
+    //     keepPreviousData: true,
+    // })
+    const [data, setData] = useState<any>()
+    useEffect(() => {
+        setData(data)
+    }, [data])
 
     const onChange: DatePickerProps['onChange'] = (date, dateString) => {
         // console.log(date, dateString)

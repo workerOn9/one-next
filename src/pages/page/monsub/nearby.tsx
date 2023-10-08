@@ -12,7 +12,7 @@ import {
     Textarea
 } from "@nextui-org/react"
 import dayjs from "dayjs"
-import useSWR from "swr"
+// import useSWR from "swr"
 
 const header = [
     {
@@ -50,7 +50,12 @@ interface dataProps {
     statDate: string
 }
 
-const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.json())
+// const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.json())
+
+function linkFetch(body: any) {
+    const url = "https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getPointRelatedRecord"
+    return fetch(url, { method: 'POST', body }).then((res) => res.json())
+}
 
 // 获取今日日期作为默认日期
 const today = new Date()
@@ -81,9 +86,9 @@ function Nearby() {
         }
     }))
     const [queryIds, setQueryIds] = useState<string[]>([])
-    useEffect(() => {
-        setRequestBody(requestBody)
-    }, [requestBody])
+    // useEffect(() => {
+    //     setRequestBody(requestBody)
+    // }, [requestBody])
     useEffect(() => {
         setQueryIds(queryIds)
     }, [queryIds])
@@ -94,25 +99,33 @@ function Nearby() {
         }
     }
 
-    const onChangeQueryIds = () => {
+    const onChangeQueryIds = async () => {
         // console.log(queryIds)
         if (queryIds && dateSelect) {
             // console.log(queryIds, dateSelect)
+            setDateSelect(dateSelect)
+            setQueryIds(queryIds)
             setRequestBody(JSON.stringify({
                 data: {
                     indicts: queryIds,
                     statDate: dateSelect
                 }
             }))
+            const res = await linkFetch(requestBody)
+            if (res && res.data) setData(res)
         }
     }
 
-    const {
-        data,
-        isLoading
-    } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getPointRelatedRecord`, (url) => fetcher(url, requestBody), {
-        keepPreviousData: true,
-    })
+    // const {
+    //     data,
+    //     isLoading
+    // } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getPointRelatedRecord`, (url) => fetcher(url, requestBody), {
+    //     keepPreviousData: true,
+    // })
+    const [data, setData] = useState()
+    useEffect(() => {
+        setData(data)
+    }, [data])
 
     const onChange: DatePickerProps['onChange'] = (date, dateString) => {
         // console.log(date, dateString)

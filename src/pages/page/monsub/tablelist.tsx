@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import dayjs from "dayjs"
-import useSWR from "swr"
+// import useSWR from "swr"
 import { Button, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from '@nextui-org/react'
 import { DatePicker, DatePickerProps } from 'antd'
 
@@ -83,7 +83,12 @@ interface Page {
     pageSize: number | 20
 }
 
-const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.json())
+// const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.json()).finally(() => { console.log(body) })
+
+function linkFetch(body: any) {
+    const url = "https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getList"
+    return fetch(url, { method: 'POST', body }).then((res) => res.json())
+}
 
 // 获取今日日期作为默认日期
 const today = new Date()
@@ -103,7 +108,7 @@ function Tablelist() {
 
     const [dateSelect, setDateSelect] = useState(`${year}${month}${day}`)
     useEffect(() => {
-        // console.info(dateSelect)
+        console.info(dateSelect)
         setDateSelect(dateSelect)
     }, [dateSelect])
 
@@ -118,9 +123,10 @@ function Tablelist() {
         }
     }))
     const [queryIds, setQueryIds] = useState<string[]>([])
-    useEffect(() => {
-        setRequestBody(requestBody)
-    }, [requestBody])
+    // useEffect(() => {
+    //     console.log(requestBody)
+    //     setRequestBody(requestBody)
+    // }, [requestBody])
     useEffect(() => {
         setQueryIds(queryIds)
     }, [queryIds])
@@ -131,10 +137,12 @@ function Tablelist() {
         }
     }
 
-    const onChangeQueryIds = () => {
+    const onChangeQueryIds = async () => {
         // console.log(queryIds)
         if (queryIds && dateSelect) {
             // console.log(queryIds, dateSelect)
+            setDateSelect(dateSelect)
+            setQueryIds(queryIds)
             setRequestBody(JSON.stringify({
                 data: {
                     queryIdList: queryIds,
@@ -145,15 +153,22 @@ function Tablelist() {
                     }
                 }
             }))
+            const res = await linkFetch(requestBody)
+            if (res && res.data) setData(res)
         }
     }
 
-    const {
-        data,
-        isLoading
-    } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getList`, (url) => fetcher(url, requestBody), {
-        keepPreviousData: true,
-    })
+    // const {
+    //     data,
+    //     isLoading
+    // } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getList`, (url) => fetcher(url, requestBody), {
+    //     // keepPreviousData: true,
+    // })
+
+    const [data, setData] = useState()
+    useEffect(() => {
+        setData(data)
+    }, [data])
 
     const onChange: DatePickerProps['onChange'] = (date, dateString) => {
         // console.log(date, dateString)
@@ -172,6 +187,8 @@ function Tablelist() {
                     <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>Summit</Button>
                     </div>
                 </div>
+                {/* <Spacer y={2} />
+                <Card><CardBody>{JSON.stringify(requestBody)}</CardBody></Card> */}
             </div>
             <Spacer y={2} />
             <Table aria-label="table" selectionMode="single" color="primary" isHeaderSticky={true} isCompact={true}
