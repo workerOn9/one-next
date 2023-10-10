@@ -108,7 +108,7 @@ function Tablelist() {
 
     const [dateSelect, setDateSelect] = useState(`${year}${month}${day}`)
     useEffect(() => {
-        console.info(dateSelect)
+        // console.info(dateSelect)
         setDateSelect(dateSelect)
     }, [dateSelect])
 
@@ -123,16 +123,16 @@ function Tablelist() {
         }
     }))
     const [queryIds, setQueryIds] = useState<string[]>([])
-    // useEffect(() => {
-    //     console.log(requestBody)
-    //     setRequestBody(requestBody)
-    // }, [requestBody])
+    useEffect(() => {
+        // console.log(requestBody)
+        setRequestBody(requestBody)
+    }, [requestBody])
     useEffect(() => {
         setQueryIds(queryIds)
     }, [queryIds])
     const contentChange = (e: string) => {
         if (e) {
-            console.log(e)
+            // console.log(e)
             setQueryIds(e.split(','))
         }
     }
@@ -143,7 +143,7 @@ function Tablelist() {
             // console.log(queryIds, dateSelect)
             setDateSelect(dateSelect)
             setQueryIds(queryIds)
-            setRequestBody(JSON.stringify({
+            const reqBody = JSON.stringify({
                 data: {
                     queryIdList: queryIds,
                     statDate: dateSelect,
@@ -152,18 +152,12 @@ function Tablelist() {
                         pageSize: 20
                     }
                 }
-            }))
-            const res = await linkFetch(requestBody)
+            })
+            setRequestBody(reqBody)
+            const res = await linkFetch(reqBody)
             if (res && res.data) setData(res)
         }
     }
-
-    // const {
-    //     data,
-    //     isLoading
-    // } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getList`, (url) => fetcher(url, requestBody), {
-    //     // keepPreviousData: true,
-    // })
 
     const [data, setData] = useState<any>()
     useEffect(() => {

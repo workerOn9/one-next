@@ -66,26 +66,21 @@ function Showsql() {
     const onChangeQueryIds = async () => {
         // console.log(queryIds)
         if (queryId && dateSelect) {
-            // console.log(queryIds, dateSelect)
+            // console.log(queryId, dateSelect)
             setDateSelect(dateSelect)
             setQueryId(queryId)
-            setRequestBody(JSON.stringify({
+            const reqBody = JSON.stringify({
                 data: {
                     queryId: queryId,
                     statDate: dateSelect
                 }
-            }))
-            const res = await linkFetch(requestBody)
-            if (res) setData(JSON.parse(decodeURIComponent(res)).replace(/^"(.*)"$/, '$1').replace(/\\"/g, '"'))
+            })
+            setRequestBody(reqBody)
+            const res = await linkFetch(reqBody)
+            // console.log(requestBody, res)
+            if (res) setData(JSON.parse(res).replace(/^"(.*)"$/, '$1').replace(/\\"/g, '"'))
         }
     }
-
-    // const {
-    //     data,
-    //     isLoading
-    // } = useSWR(`https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getSql`, (url) => fetcher(url, requestBody), {
-    //     keepPreviousData: true,
-    // })
     const [data, setData] = useState<any>()
     useEffect(() => {
         setData(data)
