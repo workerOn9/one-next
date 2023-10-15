@@ -50,13 +50,18 @@ function Shengcao() {
 
     const contentHandler = async () => {
         if (sourceContent.length > 0) {
-            let thisContent = encodeURIComponent(sourceContent)
-            let url = `/api/shengcao?text=${thisContent}&to_language=zh-CN`
-            const res = await fetcher(url, JSON.stringify({
-                repeat: repeatTimes
-            }))
-            if (res) {
-                setTargetContent(res)
+            // 用句号分段sourceContent
+            const sentences = sourceContent.split('。').filter(item => item.length > 0)
+            setTargetContent('')
+            for (let index = 0; index < sentences.length; index++) {
+                const element = sentences[index]
+                const url = `/api/shengcao?text=${element}&to_language=zh-CN`
+                const res = await fetcher(url, JSON.stringify({
+                    repeat: repeatTimes
+                }))
+                if (res) {
+                    setTargetContent(prev => prev + res + "\n\n")
+                }
             }
         }
     }
