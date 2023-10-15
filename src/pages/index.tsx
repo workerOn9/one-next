@@ -44,7 +44,7 @@ export default function Home() {
                         <Link isBlock color={activeTab === 'chat' ? "primary" : "foreground"} onClick={() => setActiveTab('chat')}>聊天</Link>
                     </NavbarItem>
                     <NavbarItem isActive={activeTab === 'shengcao'}>
-                        <Link isBlock color={activeTab === 'shengcao' ? "primary" : "foreground"} onClick={() => setActiveTab('chashengcaot')}>生草机</Link>
+                        <Link isBlock color={activeTab === 'shengcao' ? "primary" : "foreground"} onClick={() => setActiveTab('shengcao')}>生草机</Link>
                     </NavbarItem>
                     <NavbarItem>
                         <Link isBlock color={activeTab === 'none' ? "danger" : "foreground"} onClick={() => setActiveTab('none')}>未定</Link>
