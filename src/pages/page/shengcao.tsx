@@ -8,6 +8,9 @@ import { useEffect, useState } from "react"
  */
 function Shengcao() {
     const [sourceContent, setSourceContent] = useState('')
+    useEffect(() => {
+        setSourceContent(sourceContent)
+    }, [sourceContent])
     const sourceContentHandler = (str: string) => {
         setSourceContent(str)
     }
@@ -41,6 +44,10 @@ function Shengcao() {
     }
 
     const [targetContent, setTargetContent] = useState('')
+    useEffect(() => {
+        setTargetContent(targetContent)
+    }, [targetContent])
+
     const contentHandler = async () => {
         if (sourceContent.length > 0) {
             let thisContent = encodeURIComponent(sourceContent)
@@ -54,9 +61,38 @@ function Shengcao() {
         }
     }
 
+    const [onSpeaking, setOnSpeaking] = useState(false)
+    const playText = (text: string) => {
+        const synth = window.speechSynthesis
+        let voices = synth.getVoices()
+        const voiceMsg0 = new SpeechSynthesisUtterance()
+        voiceMsg0.text = text
+        // list all voices of chinese
+        // voices.map(voice => {
+        //   if (voice.lang.match(voicePattern)) console.log(voice)
+        // })
+        for (let index = 0; index < voices.length; index++) {
+            // 如果是我用zh-HK
+            if (voices[index].lang === 'zh-CN') {
+                voiceMsg0.voice = voices[index]
+                break
+            } else {
+                voiceMsg0.lang = 'zh-TW'
+            }
+        }
+        !onSpeaking ? synth.speak(voiceMsg0) : synth.cancel()
+    }
+
+    const speakHandler = (text: string) => {
+        setOnSpeaking(!onSpeaking)
+        playText(text)
+    }
+
     return (
-        <div style={{ display: "grid", gridTemplateColumns: "auto 8% auto" }}>
-            <Textarea label="输入/Input" labelPlacement="inside" placeholder="输入原文/Write sth" minRows={50} onValueChange={sourceContentHandler}/>
+        <div style={{ display: "grid", gridTemplateColumns: "auto 10% auto" }}>
+            <div style={{ maxWidth: "45vw" }}>
+                <Textarea label="输入/Input" labelPlacement="inside" placeholder="输入原文/Write sth" minRows={50} onValueChange={sourceContentHandler} />
+            </div>
             <div style={{
                 display: "grid",
                 justifyContent: "center",
@@ -68,8 +104,20 @@ function Shengcao() {
                 <Button color="success" size="sm" radius="none" onPress={contentHandler}>生草机/Shengcao</Button>
                 <Spacer y={1} />
                 <div style={{ display: "grid", gridTemplateColumns: "auto auto", justifyContent: "center", padding: "0 10px" }}>
-                    <Button endContent={<SoundFilled />} size="sm" color="default" radius="full" style={{ padding: "10px 20px" }}>Source</Button>
-                    <Button endContent={<SoundFilled />} size="sm" color="primary" radius="full" style={{ padding: "10px 20px" }}>Target</Button>
+                    <Button endContent={<SoundFilled />} size="sm" color="default" radius="full" style={{ padding: "10px 20px" }}
+                        onPress={() => {
+                            if (sourceContent) {
+                                speakHandler(sourceContent)
+                            }
+                        }}
+                    >Source</Button>
+                    <Button endContent={<SoundFilled />} size="sm" color="primary" radius="full" style={{ padding: "10px 20px" }}
+                        onPress={() => {
+                            if (targetContent) {
+                                speakHandler(targetContent)
+                            }
+                        }}
+                    >Target</Button>
                 </div>
             </div>
             <Card>
