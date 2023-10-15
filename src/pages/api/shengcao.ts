@@ -71,7 +71,7 @@ const langs = {
     'yi': 'Yiddish',
 }
 
-export default async function shengcao(req: NextApiRequest, res: NextApiResponse) {
+export default async function handle(req: NextApiRequest, res: NextApiResponse) {
     const { text, to_language = 'auto', text_language = 'auto' } = req.query
     const { repeat } = req.body
     try {
@@ -82,7 +82,7 @@ export default async function shengcao(req: NextApiRequest, res: NextApiResponse
             let to_lang = randomKey(to_language.toString())
             for (let i = 2; i < repeat; i++) {
                 if (i === repeat - 1) to_lang = to_language.toString()
-                console.log(from_lang, to_lang, thisResult, i)
+                // console.log(from_lang, to_lang, thisResult, i)
                 thisResult = await translate(thisResult, to_lang, from_lang)
                 if (i != repeat - 1) {
                     let lang = to_lang

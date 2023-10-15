@@ -12,6 +12,7 @@
     "bun:dev": "bun run build && bun run dev"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.2.6",
     "@azure/openai": "^1.0.0-beta.5",
     "@nextui-org/react": "^2.1.7",
     "@prisma/client": "latest",
@@ -24,8 +25,8 @@
     "ai": "^2.2.12",
     "antd": "^5.9.2",
     "autoprefixer": "10.4.15",
-    "echarts": "^5.4.3",
     "axios": "^1.5.1",
+    "echarts": "^5.4.3",
     "eslint": "8.47.0",
     "eslint-config-next": "13.4.19",
     "framer-motion": "^10.16.1",
