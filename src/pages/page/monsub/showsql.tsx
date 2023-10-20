@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, Spacer, Textarea } from "@nextui-org/react"
+import { Button, Card, CardBody, Input, Spacer, Textarea } from "@nextui-org/react"
 import { useEffect, useState } from "react"
 import dayjs from "dayjs"
 // import useSWR from "swr"
@@ -27,7 +27,7 @@ const year = today.getFullYear()
 const month = String(today.getMonth() + 1).padStart(2, '0')
 const day = String(today.getDate()).padStart(2, '0')
 
-function Showsql() {
+function Showsql(isDrill: boolean, inputQueryId?: string, inputDate?: string) {
     const [locale, setLocale] = useState<any>()
     useEffect(() => {
         (async () => {
@@ -91,19 +91,46 @@ function Showsql() {
         if (dateString) setDateSelect(dateString.replaceAll('-', ''))
     }
 
+    useEffect(() => {
+        if (inputQueryId || inputDate) {
+            console.log(inputQueryId, inputDate)
+        }
+        const fetchData = async () => {
+            const res = await linkFetch(JSON.stringify({
+                data: {
+                    queryId: inputQueryId,
+                    statDate: inputDate
+                }
+            }))
+            if (res) setData(JSON.parse(res).replace(/^"(.*)"$/, '$1').replace(/\\"/g, '"'))
+        }
+        if (inputQueryId && inputDate) {
+            fetchData()
+        }
+    }, [inputQueryId])
+
     return (
         <div>
-            <div>
+            {!isDrill && <div>
                 <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale} />
                 <Spacer y={2} />
                 <div style={{ display: 'inline', justifyContent: 'center' }}>
-                    <Textarea label="QueryId" labelPlacement="inside" minRows={1} onValueChange={contentChange} fullWidth={false}/>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'start' }}>
+                        <Input
+                            isClearable={true}
+                            label="QueryId 输入"
+                            onClear={() => setQueryId("")}
+                            onValueChange={contentChange}
+                            labelPlacement="outside-left"
+                            placeholder="query_id..."
+                        />
+                    </div>
                     <Spacer y={1} />
                     <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>Summit</Button>
+                        <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>提交</Button>
                     </div>
                 </div>
-            </div>
+            </div>}
             <Spacer y={2} />
             <Card>
                 <CardBody>{data && <Markdown>{data}</Markdown>}</CardBody>

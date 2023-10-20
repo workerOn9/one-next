@@ -12,6 +12,7 @@ import {
     Textarea
 } from "@nextui-org/react"
 import dayjs from "dayjs"
+import Tablelist from "./tablelist"
 // import useSWR from "swr"
 
 const header = [
@@ -63,7 +64,8 @@ const year = today.getFullYear()
 const month = String(today.getMonth() + 1).padStart(2, '0')
 const day = String(today.getDate()).padStart(2, '0')
 
-function Nearby() {
+function Nearby(inputPoints?: string[], inputDate?: string) {
+
     const [locale, setLocale] = useState<any>()
     useEffect(() => {
         (async () => {
@@ -87,9 +89,31 @@ function Nearby() {
     }))
     const [queryIds, setQueryIds] = useState<string[]>([])
     useEffect(() => {
-        setRequestBody(requestBody)
+        const fetchData = async () => {
+            const res = await linkFetch(JSON.stringify({
+                data: {
+                    indicts: inputPoints,
+                    statDate: inputDate
+                }
+            }))
+            if (res && res.data) setData(res)
+        }
+        if (inputPoints && inputPoints.length > 0 && inputDate) {
+            setRequestBody(JSON.stringify({
+                data: {
+                    indicts: inputPoints,
+                    statDate: inputDate
+                }
+            }))
+            fetchData()
+        } else {
+            setRequestBody(requestBody)
+        }
     }, [requestBody])
     useEffect(() => {
+        if (inputPoints && inputPoints.length > 0) {
+            setQueryIds(inputPoints)
+        }
         setQueryIds(queryIds)
     }, [queryIds])
     const contentChange = (e: string) => {
@@ -132,40 +156,58 @@ function Nearby() {
         setSelectedKeys(selectedKeys)
     }, [selectedKeys])
 
+    const [selectedQueryIds, setSelectedQueryIds] = useState<string[]>([])
+
     // 按钮响应
     const btnHandler = () => {
         // console.log(selectedKeys)
-        const result = Array.from(selectedKeys).join(",")
+        const keys = Array.from(selectedKeys)
+        const result = keys.join(",")
+        if (keys && keys.length > 0) {
+            console.log(keys)
+            setSelectedQueryIds([...keys])
+        }
         navigator.clipboard.writeText(result)
             .then(() => {
-                console.log("已复制: {}", result)
+                console.log(`已复制: ${result}`)
             })
             .catch((error) => {
-                console.error("无法复制到剪贴板:", error)
+                console.error(`无法复制到剪贴板: ${error}`)
             })
     }
+
+    useEffect(() => {
+        if (selectedQueryIds && selectedQueryIds.length > 0) {
+            console.log(selectedQueryIds)
+            setSelectedQueryIds(selectedQueryIds)
+        }
+    }, [selectedKeys])
 
     return (
         <div>
             <div>
-                <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale} />
-                <Spacer y={2} />
-                <div style={{ display: 'inline', justifyContent: 'center' }}>
-                    <Textarea label="QueryId" labelPlacement="inside" minRows={1} onValueChange={contentChange} fullWidth={false}/>
-                    <Spacer y={1} />
-                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>Summit</Button>
-                    <Button color="success" size="sm" radius="full" variant="flat" onPress={btnHandler}>COPY</Button>
-                    </div>
-                </div>
+                {(inputPoints && inputPoints.length > 0 && inputDate) ? (<Button color="success" size="sm" radius="full" variant="flat" onPress={btnHandler}>复制</Button>) : (
+                    <>
+                        <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale} />
+                        <Spacer y={2} />
+                        <div style={{ display: 'inline', justifyContent: 'center' }}>
+                            <Textarea label="QueryId" labelPlacement="inside" minRows={1} onValueChange={contentChange} fullWidth={false} />
+                            <Spacer y={1} />
+                            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>提交</Button>
+                                <Button color="success" size="sm" radius="full" variant="flat" onPress={btnHandler}>复制</Button>
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
             <Spacer y={2} />
             <Table aria-label="table" selectionMode="multiple" color="primary" isHeaderSticky={true} isCompact={true}
                 selectedKeys={selectedKeys}
                 onSelectionChange={(keys: any) => {
-                    console.info(keys)
+                    // console.info(keys)
                     setSelectedKeys(keys)
-                    console.info(selectedKeys)
+                    // console.info(selectedKeys)
                 }}
                 isStriped={true}
                 topContent={<h1>获取临近记录</h1>}>
@@ -187,6 +229,7 @@ function Nearby() {
                     }}
                 </TableBody>
             </Table>
+            {Tablelist(true, selectedQueryIds, dateSelect)}
         </div>
     )
 }

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import dayjs from "dayjs"
 // import useSWR from "swr"
-import { Button, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue } from '@nextui-org/react'
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue, useDisclosure } from '@nextui-org/react'
 import { DatePicker, DatePickerProps } from 'antd'
+import Showsql from './showsql'
 
 const header = [
     {
@@ -24,10 +25,6 @@ const header = [
     {
         key: "duration",
         label: "耗时(ms)"
-    },
-    {
-        key: "tableRead",
-        label: "读表"
     },
     {
         key: "engineType",
@@ -60,6 +57,10 @@ const header = [
     {
         key: "sessionStart",
         label: "session开始时间"
+    },
+    {
+        key: "tableRead",
+        label: "读表"
     }
 ]
 
@@ -96,7 +97,8 @@ const year = today.getFullYear()
 const month = String(today.getMonth() + 1).padStart(2, '0')
 const day = String(today.getDate()).padStart(2, '0')
 
-function Tablelist() {
+function Tablelist(isDrill: boolean, inputQueryIds?: string[], inputDate?: string) {
+
     const [locale, setLocale] = useState<any>()
     useEffect(() => {
         (async () => {
@@ -136,6 +138,27 @@ function Tablelist() {
             setQueryIds(e.split(','))
         }
     }
+    useEffect(() => {
+        if (inputQueryIds || inputDate) {
+            console.log(inputQueryIds, inputDate)
+        }
+        const fetchData = async () => {
+            const res = await linkFetch(JSON.stringify({
+                data: {
+                    statDate: inputDate,
+                    queryIdList: inputQueryIds,
+                    page: {
+                        pageNo: 1,
+                        pageSize: 20
+                    }
+                }
+            }))
+            if (res && res.data) setData(res)
+        }
+        if (inputQueryIds && inputQueryIds.length > 0 && inputDate) {
+            fetchData()
+        }
+    }, [inputQueryIds])
 
     const onChangeQueryIds = async () => {
         // console.log(queryIds)
@@ -169,21 +192,69 @@ function Tablelist() {
         if (dateString) setDateSelect(dateString.replaceAll('-', ''))
     }
 
+    const { isOpen, onOpen, onOpenChange } = useDisclosure()
+
+    const [drillValue, setDrillValue] = useState<string>()
+    useEffect(() => {
+        setDrillValue(drillValue)
+    }, [drillValue])
+    const btnDrillHandler = (e: any, query_id: string) => {
+        if (query_id && query_id.length > 0) {
+            console.log(query_id)
+            setDrillValue(query_id)
+        }
+    }
+
+    const renderCell = useCallback((data: any, columnKey: React.Key) => {
+        const cellValue = data[columnKey]
+        switch (columnKey) {
+            case 'queryId':
+                return <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+                    <span>{cellValue}</span>
+                    <Spacer x={2} />
+                    <Button className="max-w-fit" size="sm" radius="full"
+                        onPress={(e) => {
+                            btnDrillHandler(e, cellValue)
+                            onOpen()
+                        }}
+                    >
+                        SQL
+                    </Button>
+                </div>
+            case 'tableRead':
+                return JSON.stringify(cellValue)
+            case 'engineType':
+                return JSON.stringify(cellValue)
+            default:
+                return cellValue
+        }
+    }, [])
+
     return (
         <div>
-            <div>
+            {!isDrill && <div>
                 <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale} />
                 <Spacer y={2} />
                 <div style={{ display: 'inline', justifyContent: 'center' }}>
-                    <Textarea label="QueryId" labelPlacement="inside" minRows={1} onValueChange={contentChange} fullWidth={false}/>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'start' }}>
+                    <Input
+                        isClearable={true}
+                        label="QueryId 输入"
+                        onClear={() => setQueryIds([])}
+                        onValueChange={contentChange}
+                        labelPlacement="outside-left"
+                        description="多个query_id用逗号分隔"
+                        placeholder="query_ids..."
+                    />
+                    </div>
                     <Spacer y={1} />
                     <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>Summit</Button>
+                    <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>提交</Button>
                     </div>
                 </div>
                 {/* <Spacer y={2} />
                 <Card><CardBody>{JSON.stringify(requestBody)}</CardBody></Card> */}
-            </div>
+            </div>}
             <Spacer y={2} />
             <Table aria-label="table" color="primary" isHeaderSticky={true} isCompact={true}
                 isStriped={true}
@@ -191,7 +262,7 @@ function Tablelist() {
                 <TableHeader columns={header}>
                     {(column) => {
                         // console.info(column)
-                        return <TableColumn key={column.key}>{column.label}</TableColumn>
+                        return <TableColumn key={column.key} maxWidth={10} isRowHeader={true}>{column.label}</TableColumn>
                     }}
                 </TableHeader>
                 <TableBody items={data?.data?.total_datas ?? []} emptyContent={"没有数据"}>
@@ -199,18 +270,29 @@ function Tablelist() {
                         // console.info(item)
                         return <TableRow key={item.queryId}>
                             {(columnKey) => {
-                                const obj = getKeyValue(item, columnKey)
-                                // console.info(columnKey)
-                                if (columnKey === 'tableRead' || columnKey === 'engineType') {
-                                    // obj = JSON.stringify(obj)
-                                    return <TableCell>{JSON.stringify(obj)}</TableCell>
-                                }
-                                return <TableCell>{obj}</TableCell>
+                                return <TableCell>{renderCell(item, columnKey)}</TableCell>
                             }}
                         </TableRow>
                     }}
                 </TableBody>
             </Table>
+            <Modal isOpen={isOpen} onClose={onOpenChange} placement="auto" size='5xl' scrollBehavior="inside">
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader className="flex flex-col gap-1">SQL</ModalHeader>
+                            <ModalBody>
+                                {Showsql(true, drillValue, dateSelect)}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button color="danger" variant="light" onPress={onClose}>
+                                    关闭
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
         </div>
     )
 }

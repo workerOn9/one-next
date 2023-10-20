@@ -5,14 +5,21 @@ import {
     Button,
     Chip,
     CircularProgress,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
     Spacer,
     Table,
     TableBody, TableCell,
     TableColumn,
     TableHeader,
-    TableRow
+    TableRow,
+    useDisclosure
 } from "@nextui-org/react"
 import dayjs from "dayjs"
+import Nearby from "./nearby"
 
 const columns = [
     {
@@ -68,18 +75,30 @@ function Extremum() {
         // console.log(date, dateString)
         if (dateString) setDateSelect(dateString.replaceAll('-', ''))
     }
+    const [drillValues, setDrillValues] = useState<string[]>([])
+    useEffect(() => {
+        setDrillValues(drillValues)
+    }, [drillValues])
     // 按钮响应
     const btnHandler = (e: any, points: string[]) => {
         // console.info(points.join(","))
         const result = points.join(",")
         navigator.clipboard.writeText(result)
             .then(() => {
-                console.log("已复制: {}", result)
+                console.log(`已复制: ${result}`)
             })
             .catch((error) => {
-                console.error("无法复制到剪贴板:", error)
+                console.error(`无法复制到剪贴板: ${error}`)
             })
     }
+    const btnDrillHandler = (e: any, points: string[], date: string) => {
+        // console.info(points, date)
+        if (points && points.length > 0) {
+            setDrillValues(points)
+        }
+    }
+
+    const { isOpen, onOpen, onOpenChange } = useDisclosure()
 
     const renderCell = React.useCallback((data: any, columnKey: React.Key) => {
         const cellValue = data[columnKey]
@@ -106,8 +125,13 @@ function Extremum() {
                         </div>}
                     <Spacer x={4} />
                     <Button color="success" size="sm" radius="full" variant="flat" onPress={(e) => btnHandler(e, points)}>
-                        COPY
+                        复制
                     </Button>
+                    <Spacer x={2} />
+                    <Button className="max-w-fit" size="sm" radius="full" onPress={(e) => {
+                        btnDrillHandler(e, points, dateSelect)
+                        onOpen()
+                    }}>下钻</Button>
                 </div>
             default:
                 return cellValue
@@ -143,6 +167,26 @@ function Extremum() {
                     }}
                 </TableBody>
             </Table>
+            <Modal isOpen={isOpen} onClose={onOpenChange} placement="auto" backdrop="blur" size="5xl" scrollBehavior="inside">
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader className="flex flex-col gap-1">Insight</ModalHeader>
+                            <ModalBody>
+                                {Nearby(drillValues, dateSelect)}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button color="danger" variant="light" onPress={onClose}>
+                                    关闭
+                                </Button>
+                                {/* <Button color="primary" onPress={onClose}>
+                                    Action
+                                </Button> */}
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
         </div>
     )
 }

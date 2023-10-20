@@ -1,19 +1,17 @@
 import Extremum from "@/pages/page/monsub/extremum"
-import {Spacer} from "@nextui-org/react"
-import Nearby from "@/pages/page/monsub/nearby"
+import { Spacer } from "@nextui-org/react"
 import Tablelist from "./monsub/tablelist"
-import Showsql from "./monsub/showsql"
+import Trend from "./monsub/trend"
 
 function Monitor() {
     return (
-        <div style={{padding: "10px 0", maxWidth: '90vw', maxHeight: '90vw', margin: '0 auto'}}>
-            <Extremum />
-            <Spacer y={4}/>
-            <Nearby />
-            <Spacer y={4}/>
-            <Tablelist />
+        <div style={{ padding: "10px 0", maxWidth: '90vw', maxHeight: '90vw', margin: '0 auto' }}>
+            <Trend />
             <Spacer y={4} />
-            <Showsql />
+            <Extremum />
+            <Spacer y={4} />
+            {Tablelist(false)}
+            <Spacer y={4} />
         </div>
     )
 }
