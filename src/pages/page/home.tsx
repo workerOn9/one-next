@@ -53,8 +53,7 @@ function Query() {
             body: JSON.stringify(req),
             redirect: 'follow'
         })
-        const data = res.ok ? res.json() : undefined
-        return data
+        return res.ok ? res.json() : undefined
     }
     // parser按钮
     const parserClickHandler = () => {

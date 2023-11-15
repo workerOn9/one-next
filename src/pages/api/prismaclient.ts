@@ -1,7 +1,7 @@
 import robot from "@/utils/datahandler"
 import { defaultSql, limitRegex } from "@/utils/sqlCommonArgs"
-import { PrismaClient } from "@prisma/client"
 import { NextApiRequest, NextApiResponse } from "next"
+import { PrismaClient } from "@prisma/client/extension"
 
 /**
  * prisma use example
