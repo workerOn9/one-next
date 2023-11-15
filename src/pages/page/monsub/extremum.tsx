@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import useSWR from "swr"
-import { DatePicker, DatePickerProps } from "antd"
 import {
     Button,
     Chip,
@@ -18,7 +17,6 @@ import {
     TableRow,
     useDisclosure
 } from "@nextui-org/react"
-import dayjs from "dayjs"
 import Nearby from "./nearby"
 
 const columns = [
@@ -42,27 +40,7 @@ const columns = [
 
 const fetcher = (...args: Parameters<typeof fetch>) => fetch(...args).then((res) => res.json())
 
-// 获取今日日期作为默认日期
-const today = new Date()
-const year = today.getFullYear()
-const month = String(today.getMonth() + 1).padStart(2, '0')
-const day = String(today.getDate()).padStart(2, '0')
-
-function Extremum() {
-    const [locale, setLocale] = useState<any>()
-    useEffect(() => {
-        (async () => {
-            const zh_CN = (await import('antd/es/date-picker/locale/zh_CN')).default
-            const en_US = (await import('antd/es/date-picker/locale/en_US')).default
-            setLocale(zh_CN)
-        })()
-    }, [])
-
-    const [dateSelect, setDateSelect] = useState(`${year}${month}${day}`)
-    useEffect(() => {
-        // console.info(dateSelect)
-        setDateSelect(dateSelect)
-    }, [dateSelect])
+function Extremum({ dateSelect, onCopyChange} : { dateSelect: string, onCopyChange: (parameter: any) => void}) {
     // 获取API数据
     const {
         data,
@@ -71,26 +49,21 @@ function Extremum() {
         keepPreviousData: true,
     })
 
-    const onChange: DatePickerProps['onChange'] = (date, dateString) => {
-        // console.log(date, dateString)
-        if (dateString) setDateSelect(dateString.replaceAll('-', ''))
-    }
     const [drillValues, setDrillValues] = useState<string[]>([])
-    useEffect(() => {
-        setDrillValues(drillValues)
-    }, [drillValues])
-    // 按钮响应
+    // 复制queryId
     const btnHandler = (e: any, points: string[]) => {
         // console.info(points.join(","))
         const result = points.join(",")
         navigator.clipboard.writeText(result)
             .then(() => {
+                onCopyChange(result)
                 console.log(`已复制: ${result}`)
             })
             .catch((error) => {
                 console.error(`无法复制到剪贴板: ${error}`)
             })
     }
+    // 下钻透视
     const btnDrillHandler = (e: any, points: string[], date: string) => {
         // console.info(points, date)
         if (points && points.length > 0) {
@@ -105,16 +78,22 @@ function Extremum() {
         // console.info(data, columnKey, data[columnKey])
         switch (columnKey) {
             case "errorPoint":
-                // console.log(data['first'])
                 const first_point = data['first']['queryId']
-                // const first_duration = data['first']['duration']
                 const first_indict = data['first']['indict']
                 const last_point = data['last']['queryId']
-                // const last_duration = data['last']['duration']
                 const last_indict = data['last']['indict']
                 let points = [first_indict]
                 if (first_point && last_point && last_point != first_point) points.push(last_indict)
                 return <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+                    <Button className="max-w-fit" size="sm" radius="full" onPress={(e) => {
+                        btnDrillHandler(e, points, dateSelect)
+                        onOpen()
+                    }}>透视</Button>
+                    <Spacer x={2} />
+                    <Button color="success" size="sm" radius="full" variant="flat" onPress={(e) => btnHandler(e, points)}>
+                        复制QueryId
+                    </Button>
+                    <Spacer x={2} />
                     {first_point && <Chip color="warning" variant="flat">{first_indict}</Chip>}
                     {first_point && last_point && first_point != last_point && <Spacer x={1} />}
                     {first_point && last_point && first_point != last_point &&
@@ -123,15 +102,6 @@ function Extremum() {
                             <Spacer x={1} />
                             <Chip color="warning" variant="flat">{last_indict}</Chip>
                         </div>}
-                    <Spacer x={4} />
-                    <Button color="success" size="sm" radius="full" variant="flat" onPress={(e) => btnHandler(e, points)}>
-                        复制
-                    </Button>
-                    <Spacer x={2} />
-                    <Button className="max-w-fit" size="sm" radius="full" onPress={(e) => {
-                        btnDrillHandler(e, points, dateSelect)
-                        onOpen()
-                    }}>下钻</Button>
                 </div>
             default:
                 return cellValue
@@ -140,13 +110,11 @@ function Extremum() {
 
     return (
         <div>
-            <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale} />
-            <Spacer y={2} />
             <Table aria-label="table"
                 // selectionMode="single"
                 color="success" isHeaderSticky={true} isCompact={true}
                 isStriped={true}
-                topContent={<h1>寻找极值</h1>}>
+                topContent={<h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>极值</h1>}>
                 <TableHeader columns={columns}>
                     {(column) => {
                         // console.info(column)
@@ -171,17 +139,14 @@ function Extremum() {
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col gap-1">Insight</ModalHeader>
+                            <ModalHeader className="flex flex-col gap-1">透视</ModalHeader>
                             <ModalBody>
-                                {Nearby(drillValues, dateSelect)}
+                                <Nearby inputPoints={drillValues} inputDate={dateSelect} />
                             </ModalBody>
                             <ModalFooter>
                                 <Button color="danger" variant="light" onPress={onClose}>
-                                    关闭
+                                    完成
                                 </Button>
-                                {/* <Button color="primary" onPress={onClose}>
-                                    Action
-                                </Button> */}
                             </ModalFooter>
                         </>
                     )}

@@ -2,18 +2,13 @@ import { Card, CardBody, Spacer } from '@nextui-org/react'
 import ReactECharts from 'echarts-for-react'
 import { useEffect, useState } from 'react'
 
-function linkFetch(body: any) {
+async function linkFetch(body: any) {
     const url = "https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getChart"
-    return fetch(url, { method: 'POST', body }).then((res) => res.json())
+    const res = await fetch(url, {method: 'POST', body})
+    return await res.json()
 }
 
-function Trend() {
-
-    const [requestBody, setRequestBody] = useState<any>(JSON.stringify({ data: {} }))
-    useEffect(() => {
-        setRequestBody(requestBody)
-    }, [requestBody])
-
+function Trend({...props}) {
     const [loading, setLoading] = useState<boolean>(false)
     const [loading2, setLoading2] = useState<boolean>(false)
     const [options, setOptions] = useState<any>({})
@@ -26,7 +21,7 @@ function Trend() {
             let y1: number[] = []
             let y2: number[] = []
             let y3: number[] = []
-            const data = await linkFetch(requestBody)
+            const data = await linkFetch(JSON.stringify({ data: { statDate: props.dateSelect } }))
             const handleClick = (params: any) => {
                 // 获取点击的柱子的索引
                 const index = params.dataIndex
@@ -50,14 +45,19 @@ function Trend() {
             }
             let options = {
                 title: {
-                    text: '概览分布图',
+                    text: '日期趋势（近7天）',
+                    left: 'center',
                 },
                 legend: {
                     data: ['失败次数', '失败占比', '慢查询次数', '慢查询占比'],
+                    orient: 'vertical',
+                    right: 30,
+                    y: 'center',
+                    padding: [40, 11, 20, 37]
                 },
                 grid: {
                     left: '5%',
-                    right: '5%',
+                    right: '10%',
                     bottom: '5%',
                     // top: '10%',
                     containLabel: true
@@ -148,7 +148,7 @@ function Trend() {
             setLoading(false)
         }
         fetchData()
-    }, [])
+    }, [props.dateSelect])
     useEffect(() => {
         const fetchData = async () => {
             setLoading2(true)
@@ -157,7 +157,7 @@ function Trend() {
             let y1: number[] = []
             let y2: number[] = []
             let y3: number[] = []
-            const data = await linkFetch(JSON.stringify({ data: { isForTimeSeries: true } }))
+            const data = await linkFetch(JSON.stringify({ data: { isForTimeSeries: true, statDate: props.dateSelect } }))
             if (data && data.data) {
                 const sheet = data.data
                 // 提取字段queryTime作为x轴
@@ -172,13 +172,20 @@ function Trend() {
                 y3 = sheet.map((item: any) => item.slowQueryRate)
             }
             let options2 = {
-                // legend: {
-                //     data: ['失败次数', '失败占比', '慢查询次数', '慢查询占比'],
-                //     right: 'bottom'
-                // },
+                title: {
+                    text: '时间趋势',
+                    left: 'center',
+                },
+                legend: {
+                    data: ['失败次数', '失败占比', '慢查询次数', '慢查询占比'],
+                    orient: 'vertical',
+                    right: 30,
+                    y: 'center',
+                    padding: [40, 11, 20, 37]
+                },
                 grid: {
                     left: '5%',
-                    right: '5%',
+                    right: '10%',
                     bottom: '5%',
                     // top: '10%',
                     containLabel: true
@@ -261,14 +268,16 @@ function Trend() {
             setOptions2(options2)
             setLoading2(false)
         }
-        fetchData()
-    }, [])
+        fetchData().then(r => {})
+    }, [props.dateSelect])
 
     return (
         <Card>
             <CardBody>
+                <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>趋势概览</h1>
+                <Spacer y={5} />
                 <ReactECharts option={options} showLoading={loading} loadingOption={{ text: '加载中...' }} />
-                <Spacer y={1} />
+                <Spacer y={3} />
                 <ReactECharts option={options2} showLoading={loading2} loadingOption={{ text: '加载中...' }} />
             </CardBody>
         </Card>

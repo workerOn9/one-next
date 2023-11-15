@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from "react"
-import { DatePicker, DatePickerProps } from "antd"
 import {
-    Button,
+    Button, Chip,
     getKeyValue,
     Spacer,
     Table,
     TableBody, TableCell,
     TableColumn,
     TableHeader,
-    TableRow,
-    Textarea
+    TableRow
 } from "@nextui-org/react"
-import dayjs from "dayjs"
-import Tablelist from "./tablelist"
-// import useSWR from "swr"
+import TableList from "./tableList"
 
 const header = [
     {
@@ -51,40 +47,17 @@ interface dataProps {
     statDate: string
 }
 
-// const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.json())
-
-function linkFetch(body: any) {
+async function linkFetch(body: any) {
     const url = "https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getPointRelatedRecord"
-    return fetch(url, { method: 'POST', body }).then((res) => res.json())
+    const res = await fetch(url, {method: 'POST', body})
+    return await res.json()
 }
 
-// 获取今日日期作为默认日期
-const today = new Date()
-const year = today.getFullYear()
-const month = String(today.getMonth() + 1).padStart(2, '0')
-const day = String(today.getDate()).padStart(2, '0')
-
-function Nearby(inputPoints?: string[], inputDate?: string) {
-
-    const [locale, setLocale] = useState<any>()
-    useEffect(() => {
-        (async () => {
-            const zh_CN = (await import('antd/es/date-picker/locale/zh_CN')).default
-            const en_US = (await import('antd/es/date-picker/locale/en_US')).default
-            setLocale(zh_CN)
-        })()
-    }, [])
-
-    const [dateSelect, setDateSelect] = useState(`${year}${month}${day}`)
-    useEffect(() => {
-        // console.info(dateSelect)
-        setDateSelect(dateSelect)
-    }, [dateSelect])
-
+function Nearby({ inputPoints, inputDate}: {inputPoints?: string[], inputDate?: string}) {
     const [requestBody, setRequestBody] = useState<any>(JSON.stringify({
         data: {
             indicts: [],
-            statDate: dateSelect
+            statDate: inputDate
         }
     }))
     const [queryIds, setQueryIds] = useState<string[]>([])
@@ -105,7 +78,7 @@ function Nearby(inputPoints?: string[], inputDate?: string) {
                     statDate: inputDate
                 }
             }))
-            fetchData()
+            fetchData().then(r => {})
         } else {
             setRequestBody(requestBody)
         }
@@ -116,55 +89,15 @@ function Nearby(inputPoints?: string[], inputDate?: string) {
         }
         setQueryIds(queryIds)
     }, [queryIds])
-    const contentChange = (e: string) => {
-        if (e) {
-            // console.log(e)
-            setQueryIds(e.split(','))
-        }
-    }
-
-    const onChangeQueryIds = async () => {
-        // console.log(queryIds)
-        if (queryIds && dateSelect) {
-            // console.log(queryIds, dateSelect)
-            setDateSelect(dateSelect)
-            setQueryIds(queryIds)
-            const reqBody = JSON.stringify({
-                data: {
-                    indicts: queryIds,
-                    statDate: dateSelect
-                }
-            })
-            setRequestBody(reqBody)
-            const res = await linkFetch(reqBody)
-            if (res && res.data) setData(res)
-        }
-    }
     const [data, setData] = useState<any>()
-    useEffect(() => {
-        setData(data)
-    }, [data])
-
-    const onChange: DatePickerProps['onChange'] = (date, dateString) => {
-        // console.log(date, dateString)
-        if (dateString) setDateSelect(dateString.replaceAll('-', ''))
-    }
-
     const [selectedKeys, setSelectedKeys] = useState(new Set([]))
-    useEffect(() => {
-        // console.info(selectedKeys)
-        setSelectedKeys(selectedKeys)
-    }, [selectedKeys])
-
     const [selectedQueryIds, setSelectedQueryIds] = useState<string[]>([])
 
     // 按钮响应
     const btnHandler = () => {
-        // console.log(selectedKeys)
         const keys = Array.from(selectedKeys)
         const result = keys.join(",")
         if (keys && keys.length > 0) {
-            console.log(keys)
             setSelectedQueryIds([...keys])
         }
         navigator.clipboard.writeText(result)
@@ -178,39 +111,19 @@ function Nearby(inputPoints?: string[], inputDate?: string) {
 
     useEffect(() => {
         if (selectedQueryIds && selectedQueryIds.length > 0) {
-            console.log(selectedQueryIds)
             setSelectedQueryIds(selectedQueryIds)
         }
     }, [selectedKeys])
 
     return (
         <div>
-            <div>
-                {(inputPoints && inputPoints.length > 0 && inputDate) ? (<Button color="success" size="sm" radius="full" variant="flat" onPress={btnHandler}>复制</Button>) : (
-                    <>
-                        <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale} />
-                        <Spacer y={2} />
-                        <div style={{ display: 'inline', justifyContent: 'center' }}>
-                            <Textarea label="QueryId" labelPlacement="inside" minRows={1} onValueChange={contentChange} fullWidth={false} />
-                            <Spacer y={1} />
-                            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>提交</Button>
-                                <Button color="success" size="sm" radius="full" variant="flat" onPress={btnHandler}>复制</Button>
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
-            <Spacer y={2} />
             <Table aria-label="table" selectionMode="multiple" color="primary" isHeaderSticky={true} isCompact={true}
                 selectedKeys={selectedKeys}
                 onSelectionChange={(keys: any) => {
-                    // console.info(keys)
                     setSelectedKeys(keys)
-                    // console.info(selectedKeys)
                 }}
                 isStriped={true}
-                topContent={<h1>获取临近记录</h1>}>
+                topContent={<h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>邻近记录</h1>}>
                 <TableHeader columns={header}>
                     {(column) => {
                         // console.info(column)
@@ -223,13 +136,22 @@ function Nearby(inputPoints?: string[], inputDate?: string) {
                         return <TableRow key={item.queryId}>
                             {(columnKey) => {
                                 // console.info(columnKey)
+                                if (columnKey === 'status') {
+                                    return <TableCell><Chip
+                                        color={getKeyValue(item, columnKey) === 'FAILED' ? 'danger' : 'default'}>
+                                        {getKeyValue(item, columnKey)}
+                                    </Chip></TableCell>
+                                }
                                 return <TableCell>{getKeyValue(item, columnKey)}</TableCell>
                             }}
                         </TableRow>
                     }}
                 </TableBody>
             </Table>
-            {Tablelist(true, selectedQueryIds, dateSelect)}
+            <Spacer y={1} />
+            {(inputPoints && inputPoints.length > 0 && inputDate) && <Button color="success" size="sm" radius="full" variant="flat" onPress={btnHandler}>展开详情</Button>}
+            <Spacer y={2} />
+            {selectedQueryIds && selectedQueryIds.length > 0 && <TableList isDrill={true} inputQueryIds={selectedQueryIds} inputDate={inputDate}/>}
         </div>
     )
 }

@@ -1,9 +1,23 @@
-import { useCallback, useEffect, useState } from 'react'
-import dayjs from "dayjs"
-// import useSWR from "swr"
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Spacer, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Textarea, getKeyValue, useDisclosure } from '@nextui-org/react'
-import { DatePicker, DatePickerProps } from 'antd'
-import Showsql from './showsql'
+import {useCallback, useEffect, useMemo, useState} from 'react'
+import {
+    Button, Chip, Dropdown, DropdownItem,
+    DropdownMenu, DropdownTrigger,
+    Input,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader, Pagination,
+    Spacer,
+    Table,
+    TableBody,
+    TableCell,
+    TableColumn,
+    TableHeader,
+    TableRow,
+    useDisclosure
+} from '@nextui-org/react'
+import ShowSQL from './showSQL'
 
 const header = [
     {
@@ -84,63 +98,43 @@ interface Page {
     pageSize: number | 20
 }
 
-// const fetcher = (url: string, body: any) => fetch(url, { method: 'POST', body }).then((res) => res.json()).finally(() => { console.log(body) })
-
-function linkFetch(body: any) {
+async function linkFetch(body: any) {
     const url = "https://bigdata-test.yingzhongshare.com/external-report-service/external/holoMonitor/getList"
-    return fetch(url, { method: 'POST', body }).then((res) => res.json())
+    const res = await fetch(url, {method: 'POST', body})
+    return await res.json()
 }
 
-// 获取今日日期作为默认日期
-const today = new Date()
-const year = today.getFullYear()
-const month = String(today.getMonth() + 1).padStart(2, '0')
-const day = String(today.getDate()).padStart(2, '0')
-
-function Tablelist(isDrill: boolean, inputQueryIds?: string[], inputDate?: string) {
-
-    const [locale, setLocale] = useState<any>()
+function TableList({isDrill, inputQueryIds, inputDate}: {
+    isDrill: boolean,
+    inputQueryIds?: string[],
+    inputDate?: string
+}) {
+    const [queryIds, setQueryIds] = useState(inputQueryIds)
+    const [inputValue, setInputValue] = useState("")
     useEffect(() => {
-        (async () => {
-            const zh_CN = (await import('antd/es/date-picker/locale/zh_CN')).default
-            const en_US = (await import('antd/es/date-picker/locale/en_US')).default
-            setLocale(zh_CN)
-        })()
-    }, [])
-
-    const [dateSelect, setDateSelect] = useState(`${year}${month}${day}`)
-    useEffect(() => {
-        // console.info(dateSelect)
-        setDateSelect(dateSelect)
-    }, [dateSelect])
-
-    const [requestBody, setRequestBody] = useState<any>(JSON.stringify({
-        data: {
-            statDate: dateSelect,
-            queryIdList: [],
-            page: {
-                pageNo: 1,
-                pageSize: 20
-            }
+        setQueryIds(inputQueryIds)
+        if (inputQueryIds && inputQueryIds.length > 0) {
+            setInputValue(inputQueryIds.join(','))
         }
-    }))
-    const [queryIds, setQueryIds] = useState<string[]>([])
-    useEffect(() => {
-        // console.log(requestBody)
-        setRequestBody(requestBody)
-    }, [requestBody])
-    useEffect(() => {
-        setQueryIds(queryIds)
-    }, [queryIds])
+    }, [inputQueryIds])
+    const [pageNo, setPageNo] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [dataCount, setDataCount] = useState(0)
+    /**
+     * 输入内容处理
+     */
     const contentChange = (e: string) => {
         if (e) {
-            // console.log(e)
+            inputQueryIds = e.split(',')
             setQueryIds(e.split(','))
         }
     }
+    /**
+     * queryIds 变化效果
+     */
     useEffect(() => {
-        if (inputQueryIds || inputDate) {
-            console.log(inputQueryIds, inputDate)
+        if (queryIds && queryIds.length > 0) {
+            setInputValue(queryIds.join(','))
         }
         const fetchData = async () => {
             const res = await linkFetch(JSON.stringify({
@@ -148,121 +142,186 @@ function Tablelist(isDrill: boolean, inputQueryIds?: string[], inputDate?: strin
                     statDate: inputDate,
                     queryIdList: inputQueryIds,
                     page: {
-                        pageNo: 1,
-                        pageSize: 20
+                        pageNo: pageNo,
+                        pageSize: pageSize
                     }
                 }
             }))
-            if (res && res.data) setData(res)
+            if (res && res.data) {
+                if (res.data.total_count && res.data.total_count != dataCount) setDataCount(res.data.total_count)
+                setData(res)
+            }
         }
-        if (inputQueryIds && inputQueryIds.length > 0 && inputDate) {
-            fetchData()
+        if (!isDrill) {
+            fetchData().then(r => {
+            })
+        } else if (isDrill && queryIds && queryIds.length > 0) {
+            fetchData().then(r => {
+            })
         }
-    }, [inputQueryIds])
-
+    }, [queryIds, pageNo])
+    /**
+     * 提交按钮触发
+     */
     const onChangeQueryIds = async () => {
-        // console.log(queryIds)
-        if (queryIds && dateSelect) {
-            // console.log(queryIds, dateSelect)
-            setDateSelect(dateSelect)
-            setQueryIds(queryIds)
+        if (inputDate) {
+            if (queryIds) setQueryIds(queryIds)
             const reqBody = JSON.stringify({
                 data: {
                     queryIdList: queryIds,
-                    statDate: dateSelect,
+                    statDate: inputDate,
                     page: {
-                        pageNo: 1,
-                        pageSize: 20
+                        pageNo: pageNo,
+                        pageSize: pageSize
                     }
                 }
             })
-            setRequestBody(reqBody)
             const res = await linkFetch(reqBody)
-            if (res && res.data) setData(res)
+            if (res && res.data) {
+                if (res.data.total_count && res.data.total_count != dataCount) setDataCount(res.data.total_count)
+                setData(res)
+            }
         }
     }
-
     const [data, setData] = useState<any>()
-    useEffect(() => {
-        setData(data)
-    }, [data])
-
-    const onChange: DatePickerProps['onChange'] = (date, dateString) => {
-        // console.log(date, dateString)
-        if (dateString) setDateSelect(dateString.replaceAll('-', ''))
-    }
-
-    const { isOpen, onOpen, onOpenChange } = useDisclosure()
-
+    const {isOpen, onOpen, onOpenChange} = useDisclosure()
     const [drillValue, setDrillValue] = useState<string>()
-    useEffect(() => {
-        setDrillValue(drillValue)
-    }, [drillValue])
+    /**
+     * 下钻按钮
+     */
     const btnDrillHandler = (e: any, query_id: string) => {
         if (query_id && query_id.length > 0) {
-            console.log(query_id)
             setDrillValue(query_id)
         }
     }
-
+    /**
+     * 复制queryId
+     */
+    const copyHandler = (e: any, query_id: string) => {
+        if (query_id && query_id.length > 0) {
+            navigator.clipboard.writeText(query_id)
+                .then(() => {
+                    console.log(`已复制: ${query_id}`)
+                })
+                .catch((error) => {
+                    console.error(`无法复制到剪贴板: ${error}`)
+                })
+        }
+    }
+    /**
+     * 字段内容渲染
+     */
     const renderCell = useCallback((data: any, columnKey: React.Key) => {
         const cellValue = data[columnKey]
         switch (columnKey) {
             case 'queryId':
-                return <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-                    <span>{cellValue}</span>
-                    <Spacer x={2} />
-                    <Button className="max-w-fit" size="sm" radius="full"
-                        onPress={(e) => {
-                            btnDrillHandler(e, cellValue)
-                            onOpen()
-                        }}
-                    >
-                        SQL
-                    </Button>
+                return <div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'center'}}>
+                    <Dropdown>
+                        <DropdownTrigger>
+                            <Button
+                                color='default'
+                                variant='light'
+                                className="capitalize"
+                            >
+                                {cellValue}
+                            </Button>
+                        </DropdownTrigger>
+                        <DropdownMenu
+                            aria-label="Dropdown Variants"
+                            color='default'
+                            variant='faded'
+                        >
+                            <DropdownItem key="copy" onPress={(e) => {
+                                copyHandler(e, cellValue)
+                            }}>复制</DropdownItem>
+                            <DropdownItem key="sql" onPress={(e) => {
+                                btnDrillHandler(e, cellValue)
+                                onOpen()
+                            }}>查看SQL</DropdownItem>
+                        </DropdownMenu>
+                    </Dropdown>
                 </div>
             case 'tableRead':
                 return JSON.stringify(cellValue)
             case 'engineType':
                 return JSON.stringify(cellValue)
+            case 'status':
+                return <Chip color={cellValue === 'FAILED' ? 'danger' : 'default'}>
+                    {cellValue}
+                </Chip>
             default:
                 return cellValue
         }
     }, [])
+    /**
+     * 总页数
+     */
+    const pages = useMemo(() => {
+        return dataCount ? Math.ceil(dataCount / pageSize) : 0
+    }, [dataCount, pageSize])
+    /**
+     * 重置按钮
+     */
+    const btnResetHandler = () => {
+        setQueryIds([])
+        setInputValue("")
+    }
 
     return (
         <div>
-            {!isDrill && <div>
-                <DatePicker onChange={onChange} picker="date" defaultValue={dayjs(dateSelect, 'YYYYMMDD')} locale={locale} />
-                <Spacer y={2} />
-                <div style={{ display: 'inline', justifyContent: 'center' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'start' }}>
-                    <Input
-                        isClearable={true}
-                        label="QueryId 输入"
-                        onClear={() => setQueryIds([])}
-                        onValueChange={contentChange}
-                        labelPlacement="outside-left"
-                        description="多个query_id用逗号分隔"
-                        placeholder="query_ids..."
-                    />
+            {!isDrill &&
+                <div style={{display: 'inline', justifyContent: 'center'}}>
+                    <div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'start'}}>
+                        <Input
+                            isClearable={true}
+                            label="QueryId 输入"
+                            onClear={() => {
+                                setQueryIds([])
+                                setInputValue("")
+                            }}
+                            onValueChange={contentChange}
+                            labelPlacement="outside-left"
+                            description="多个query_id用逗号分隔"
+                            placeholder="query_ids..."
+                            value={inputValue}
+                        />
                     </div>
-                    <Spacer y={1} />
-                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <Button color="primary" size="sm" radius="full" variant="flat" onPress={onChangeQueryIds}>提交</Button>
+                    <Spacer y={1}/>
+                    <div style={{display: 'flex', justifyContent: 'flex-start'}}>
+                        <Button color="primary" size="sm" radius="full" variant="flat"
+                                onPress={onChangeQueryIds}>提交</Button>
+                        <Spacer x={1}/>
+                        <Button color="default" size="sm" radius="full" variant="flat"
+                                onPress={btnResetHandler}>重置</Button>
                     </div>
                 </div>
-                {/* <Spacer y={2} />
-                <Card><CardBody>{JSON.stringify(requestBody)}</CardBody></Card> */}
-            </div>}
-            <Spacer y={2} />
+            }
+            <Spacer y={2}/>
             <Table aria-label="table" color="primary" isHeaderSticky={true} isCompact={true}
-                isStriped={true}
-                topContent={<h1>获取日志记录</h1>}>
+                   isStriped={true}
+                   topContent={!isDrill && <div className="flex justify-between">
+                       <h1 style={{ fontSize: '20px', fontWeight: 'bold' }}>日志记录</h1>
+                       {dataCount > 0 && <div className="flex justify-end">
+                           <Pagination
+                               size="sm"
+                               variant="flat"
+                               loop
+                               isCompact={false}
+                               showControls
+                               showShadow
+                               color="default"
+                               page={pageNo}
+                               total={pages}
+                               onChange={(page) => setPageNo(page)}
+                           />
+                       </div>}
+                   </div>}
+            >
                 <TableHeader columns={header}>
                     {(column) => {
                         // console.info(column)
-                        return <TableColumn key={column.key} maxWidth={10} isRowHeader={true}>{column.label}</TableColumn>
+                        return <TableColumn key={column.key} maxWidth={10}
+                                            isRowHeader={true}>{column.label}</TableColumn>
                     }}
                 </TableHeader>
                 <TableBody items={data?.data?.total_datas ?? []} emptyContent={"没有数据"}>
@@ -282,11 +341,11 @@ function Tablelist(isDrill: boolean, inputQueryIds?: string[], inputDate?: strin
                         <>
                             <ModalHeader className="flex flex-col gap-1">SQL</ModalHeader>
                             <ModalBody>
-                                {Showsql(true, drillValue, dateSelect)}
+                                <ShowSQL isDrill={true} inputQueryId={drillValue} inputDate={inputDate}/>
                             </ModalBody>
                             <ModalFooter>
                                 <Button color="danger" variant="light" onPress={onClose}>
-                                    关闭
+                                    完成
                                 </Button>
                             </ModalFooter>
                         </>
@@ -297,4 +356,4 @@ function Tablelist(isDrill: boolean, inputQueryIds?: string[], inputDate?: strin
     )
 }
 
-export default Tablelist
+export default TableList
