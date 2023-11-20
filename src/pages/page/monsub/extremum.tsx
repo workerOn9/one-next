@@ -34,7 +34,7 @@ const columns = [
     },
     {
         key: "errorPoint",
-        label: "错误点"
+        label: "异常点"
     }
 ]
 
@@ -65,7 +65,6 @@ function Extremum({ dateSelect, onCopyChange} : { dateSelect: string, onCopyChan
     }
     // 下钻透视
     const btnDrillHandler = (e: any, points: string[], date: string) => {
-        // console.info(points, date)
         if (points && points.length > 0) {
             setDrillValues(points)
         }
@@ -75,7 +74,6 @@ function Extremum({ dateSelect, onCopyChange} : { dateSelect: string, onCopyChan
 
     const renderCell = React.useCallback((data: any, columnKey: React.Key) => {
         const cellValue = data[columnKey]
-        // console.info(data, columnKey, data[columnKey])
         switch (columnKey) {
             case "errorPoint":
                 const first_point = data['first']['queryId']
@@ -90,17 +88,13 @@ function Extremum({ dateSelect, onCopyChange} : { dateSelect: string, onCopyChan
                         onOpen()
                     }}>透视</Button>
                     <Spacer x={2} />
-                    <Button color="success" size="sm" radius="full" variant="flat" onPress={(e) => btnHandler(e, points)}>
-                        复制QueryId
-                    </Button>
-                    <Spacer x={2} />
-                    {first_point && <Chip color="warning" variant="flat">{first_indict}</Chip>}
+                    {first_point && <Chip color="warning" variant="flat" onClick={(e) => btnHandler(e, points)}>{first_point}</Chip>}
                     {first_point && last_point && first_point != last_point && <Spacer x={1} />}
                     {first_point && last_point && first_point != last_point &&
                         <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                             <Chip color="default" variant="light">...</Chip>
                             <Spacer x={1} />
-                            <Chip color="warning" variant="flat">{last_indict}</Chip>
+                            <Chip color="warning" variant="flat" onClick={(e) => btnHandler(e, points)}>{last_point}</Chip>
                         </div>}
                 </div>
             default:
