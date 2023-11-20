@@ -61,6 +61,7 @@ function Nearby({ inputPoints, inputDate}: {inputPoints?: string[], inputDate?: 
         }
     }))
     const [queryIds, setQueryIds] = useState<string[]>([])
+    const [allKeys, setAllKeys] = useState<string[]>([])
     useEffect(() => {
         const fetchData = async () => {
             const res = await linkFetch(JSON.stringify({
@@ -69,7 +70,10 @@ function Nearby({ inputPoints, inputDate}: {inputPoints?: string[], inputDate?: 
                     statDate: inputDate
                 }
             }))
-            if (res && res.data) setData(res)
+            if (res && res.data && res.data.list) {
+                setData(res.data)
+                setAllKeys(res.data.all)
+            }
         }
         if (inputPoints && inputPoints.length > 0 && inputDate) {
             setRequestBody(JSON.stringify({
@@ -95,7 +99,7 @@ function Nearby({ inputPoints, inputDate}: {inputPoints?: string[], inputDate?: 
 
     // 按钮响应
     const btnHandler = () => {
-        const keys = Array.from(selectedKeys)
+        const keys = selectedKeys.toString() === 'all' ? allKeys : Array.from(selectedKeys)
         const result = keys.join(",")
         if (keys && keys.length > 0) {
             setSelectedQueryIds([...keys])
@@ -130,7 +134,7 @@ function Nearby({ inputPoints, inputDate}: {inputPoints?: string[], inputDate?: 
                         return <TableColumn key={column.key}>{column.label}</TableColumn>
                     }}
                 </TableHeader>
-                <TableBody items={data?.data ?? []} emptyContent={"没有数据"}>
+                <TableBody items={data?.list ?? []} emptyContent={"没有数据"}>
                     {(item: any) => {
                         // console.info(item)
                         return <TableRow key={item.queryId}>
@@ -139,7 +143,7 @@ function Nearby({ inputPoints, inputDate}: {inputPoints?: string[], inputDate?: 
                                 if (columnKey === 'status') {
                                     return <TableCell><Chip
                                         color={getKeyValue(item, columnKey) === 'FAILED' ? 'danger' : 'default'}>
-                                        {getKeyValue(item, columnKey)}
+                                        {getKeyValue(item, columnKey) === 'FAILED' ? '失败' : '成功'}
                                     </Chip></TableCell>
                                 }
                                 return <TableCell>{getKeyValue(item, columnKey)}</TableCell>

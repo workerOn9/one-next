@@ -1,15 +1,14 @@
 {
   "name": "one-next",
-  "version": "0.1.0",
+  "description": "Learning React, Learning Next.js",
+  "version": "1.0.0",
   "private": true,
+  "author": "Samuel Chung",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "bun:install": "bun install --registry=http://registry.npmmirror.com",
-    "bun:start": "bun run build && bun run start",
-    "bun:dev": "bun run build && bun run dev"
+    "lint": "next lint"
   },
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
@@ -47,5 +46,13 @@
     "tailwindcss": "3.3.3",
     "typeorm": "^0.3.17",
     "typescript": "5.2.2"
-  }
+  },
+  "engines": {
+    "node": ">=18.18.0",
+    "npm": ">=9.8.1"
+  },
+  "browserslist": [
+    "> 1%",
+    "not IE 11"
+  ]
 }
