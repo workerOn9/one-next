@@ -9,3 +9,5 @@ function Test() {
         {api}
     </div>
 }
+
+export default Test
